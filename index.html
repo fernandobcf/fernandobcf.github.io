@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Pedra, Papel e Tesoura</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+
+        <h1>Pedra, Papel e Tesoura</h1>
+
+        <p id="status">
+            Conectando ao servidor...
+        </p>
+
+    </header>
+
+
+    <main>
+
+        <!-- JOGADORES -->
+
+        <section class="players">
+
+            <div class="player-card">
+
+                <span class="player-label">
+                    Jogador 1
+                </span>
+
+                <h2 id="player1Name">
+                    ---
+                </h2>
+
+                <div
+                    id="player1Choice"
+                    class="choice-display"
+                >
+                    ?
+                </div>
+
+            </div>
+
+
+            <div class="versus">
+                VS
+            </div>
+
+
+            <div class="player-card">
+
+                <span class="player-label">
+                    Jogador 2
+                </span>
+
+                <h2 id="player2Name">
+                    ---
+                </h2>
+
+                <div
+                    id="player2Choice"
+                    class="choice-display"
+                >
+                    ?
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- JOGO -->
+
+        <section class="game">
+
+            <h2 id="roundMessage">
+                Aguardando jogadores...
+            </h2>
+
+
+            <div class="buttons">
+
+                <button
+                    class="choice-button"
+                    data-choice="pedra"
+                >
+                    <span>🪨</span>
+                    <strong>Pedra</strong>
+                </button>
+
+
+                <button
+                    class="choice-button"
+                    data-choice="papel"
+                >
+                    <span>📄</span>
+                    <strong>Papel</strong>
+                </button>
+
+
+                <button
+                    class="choice-button"
+                    data-choice="tesoura"
+                >
+                    <span>✂️</span>
+                    <strong>Tesoura</strong>
+                </button>
+
+            </div>
+
+
+            <button
+                id="leaveButton"
+                class="leave-button"
+            >
+                Sair da partida
+            </button>
+
+        </section>
+
+
+        <!-- FILA -->
+
+        <section class="queue">
+
+            <h2>
+                Fila de espera
+            </h2>
+
+            <div id="queueList">
+                Ninguém na fila.
+            </div>
+
+        </section>
+
+
+        <!-- PLACAR -->
+
+        <section class="score">
+
+            <h2>
+                Placar
+            </h2>
+
+            <div class="score-container">
+
+                <div>
+
+                    <span id="score1">
+                        0
+                    </span>
+
+                    <small id="scoreName1">
+                        ---
+                    </small>
+
+                </div>
+
+
+                <div class="score-separator">
+                    :
+                </div>
+
+
+                <div>
+
+                    <span id="score2">
+                        0
+                    </span>
+
+                    <small id="scoreName2">
+                        ---
+                    </small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- MODAL DO NOME -->
+
+<div
+    id="nameModal"
+    class="modal"
+>
+
+    <div class="modal-content">
+
+        <h2>
+            Entrar no jogo
+        </h2>
+
+        <p>
+            Digite seu nome:
+        </p>
+
+        <input
+            id="nameInput"
+            type="text"
+            maxlength="20"
+            placeholder="Seu nome"
+            autocomplete="off"
+        >
+
+        <button id="enterButton">
+            Entrar
+        </button>
+
+    </div>
+
+</div>
+
+
+<script
+    type="module"
+    src="script.js"
+></script>
+
+</body>
+
+</html>
