@@ -2,39 +2,83 @@ import {
     initializeApp
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 
-
 import {
     getDatabase,
     ref,
-    set,
-    update,
-    remove,
-    onValue,
-    onDisconnect
+    set
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 
-/*
-========================================
-FIREBASE
-========================================
-*/
-
 const firebaseConfig = {
+    apiKey: "AIzaSyDkOXi1MYbb9rp5Zo7HNfQYnhJBMPp8bs",
+    authDomain: "testdogithub.firebaseapp.com",
+    databaseURL: "https://testdogithub-default-rtdb.firebaseio.com/",
+    projectId: "testdogithub",
+    storageBucket: "testdogithub.firebasestorage.app",
+    messagingSenderId: "1045850387937",
+    appId: "1:1045850387937:web:276466d0630d8e3a7f8ea0"
+};
 
-    apiKey:
-        "AIzaSyDkOXi1MYbb9rp5Zo7HNfQYnhJBMPPp8bs",
+const app = initializeApp(firebaseConfig);
 
-    authDomain:
-        "testdogithub.firebaseapp.com",
+const db = getDatabase(app);
 
-    databaseURL:
-        "https://testdogithub-default-rtdb.firebaseio.com/",
 
-    projectId:
-        "testdogithub",
+const button =
+    document.getElementById("enterButton");
 
-    storageBucket:
+const input =
+    document.getElementById("nameInput");
+
+const modal =
+    document.getElementById("nameModal");
+
+
+button.addEventListener("click", async () => {
+
+    console.log("BOTÃO CLICADO");
+
+    const nome = input.value.trim();
+
+    if (!nome) {
+
+        alert("Digite seu nome!");
+
+        return;
+    }
+
+    console.log("Nome:", nome);
+
+    try {
+
+        await set(
+            ref(db, "teste/jogadores"),
+            {
+                nome: nome,
+                horario: Date.now()
+            }
+        );
+
+        console.log("Firebase funcionando!");
+
+        modal.classList.add("hidden");
+
+        alert("Entrou no jogo!");
+
+    } catch (erro) {
+
+        console.error(
+            "ERRO DO FIREBASE:",
+            erro
+        );
+
+        alert(
+            "Erro ao conectar ao Firebase. Veja o console."
+        );
+
+    }
+
+});    storageBucket:
         "testdogithub.firebasestorage.app",
 
     messagingSenderId:
