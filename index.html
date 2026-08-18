@@ -1,0 +1,4281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Dark Dungeon Online</title>
+
+<script type="importmap">
+{
+    "imports": {
+        "three":
+        "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+
+        "three/addons/":
+        "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
+
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    background: #000;
+    font-family: Georgia, serif;
+}
+
+canvas {
+    display: block;
+}
+
+
+/* =========================================================
+MENU
+========================================================= */
+
+#startScreen {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 100;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #21180f 0%,
+            #080706 45%,
+            #000 100%
+        );
+
+    color: white;
+
+    overflow-y: auto;
+
+    padding: 30px;
+}
+
+
+#title {
+
+    color: #a9824c;
+
+    font-size: 46px;
+
+    letter-spacing: 10px;
+
+    text-shadow:
+        0 0 20px #70451f,
+        0 0 50px #160b04;
+
+    margin-bottom: 5px;
+}
+
+
+#subtitle {
+
+    color: #666;
+
+    font-size: 11px;
+
+    letter-spacing: 5px;
+
+    margin-bottom: 30px;
+}
+
+
+#classTitle {
+
+    color: #927044;
+
+    letter-spacing: 4px;
+
+    margin-bottom: 15px;
+}
+
+
+#classes {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    justify-content: center;
+
+    gap: 15px;
+
+    max-width: 900px;
+}
+
+
+.classCard {
+
+    width: 190px;
+
+    min-height: 240px;
+
+    padding: 18px;
+
+    text-align: center;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            180deg,
+            #1b1713,
+            #070707
+        );
+
+    border: 1px solid #30261b;
+
+    transition: .2s;
+}
+
+
+.classCard:hover {
+
+    transform: translateY(-6px);
+
+    border-color: #806039;
+}
+
+
+.classCard.selected {
+
+    border-color: #c0995c;
+
+    box-shadow:
+        0 0 30px
+        rgba(192,153,92,.2);
+}
+
+
+.classIcon {
+
+    width: 80px;
+
+    height: 80px;
+
+    margin: auto;
+
+    margin-bottom: 12px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            #30271e,
+            #080808
+        );
+
+    font-size: 45px;
+}
+
+
+.classCard h2 {
+
+    color: #b8955c;
+
+    font-size: 17px;
+
+    letter-spacing: 2px;
+
+    margin-bottom: 8px;
+}
+
+
+.classCard p {
+
+    color: #777;
+
+    font-family: Arial, sans-serif;
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}
+
+
+#startButton {
+
+    margin-top: 30px;
+
+    padding: 14px 45px;
+
+    color: #d8b979;
+
+    background:
+        linear-gradient(
+            #513d25,
+            #20160d
+        );
+
+    border: 1px solid #8c693d;
+
+    font-family: Georgia, serif;
+
+    letter-spacing: 3px;
+
+    cursor: pointer;
+}
+
+
+#startButton:hover {
+
+    background:
+        linear-gradient(
+            #694f2e,
+            #291b0f
+        );
+}
+
+
+/* =========================================================
+HUD
+========================================================= */
+
+#hud {
+
+    position: fixed;
+
+    left: 20px;
+
+    top: 20px;
+
+    z-index: 20;
+
+    pointer-events: none;
+
+    color: white;
+
+    text-shadow:
+        0 2px 5px #000;
+}
+
+
+#className {
+
+    color: #c09a5d;
+
+    font-size: 18px;
+
+    letter-spacing: 3px;
+}
+
+
+#healthBar {
+
+    width: 220px;
+
+    height: 12px;
+
+    margin-top: 8px;
+
+    background: #260606;
+
+    border: 1px solid #66201b;
+}
+
+
+#healthFill {
+
+    width: 100%;
+
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #7e0c0c,
+            #db3b24
+        );
+}
+
+
+#healthText {
+
+    margin-top: 4px;
+
+    color: #aaa;
+
+    font: 11px Arial;
+}
+
+
+#roomText {
+
+    margin-top: 7px;
+
+    color: #777;
+
+    font: 11px Arial;
+}
+
+
+#onlineText {
+
+    margin-top: 4px;
+
+    color: #588d5c;
+
+    font: 11px Arial;
+}
+
+
+#crosshair {
+
+    position: fixed;
+
+    z-index: 30;
+
+    left: 50%;
+
+    top: 50%;
+
+    width: 5px;
+
+    height: 5px;
+
+    transform:
+        translate(-50%, -50%);
+
+    border-radius: 50%;
+
+    background: white;
+
+    box-shadow:
+        0 0 8px white;
+
+    pointer-events: none;
+}
+
+
+#ability {
+
+    position: fixed;
+
+    z-index: 30;
+
+    bottom: 25px;
+
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+
+    color: #aaa;
+
+    font: 11px Arial;
+
+    letter-spacing: 2px;
+
+    pointer-events: none;
+}
+
+
+#message {
+
+    position: fixed;
+
+    z-index: 50;
+
+    top: 25%;
+
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+
+    color: #d7b36d;
+
+    font-size: 20px;
+
+    letter-spacing: 3px;
+
+    text-shadow:
+        0 0 15px black;
+
+    opacity: 0;
+
+    transition: opacity .25s;
+
+    pointer-events: none;
+}
+
+
+#connection {
+
+    position: fixed;
+
+    right: 20px;
+
+    top: 20px;
+
+    z-index: 30;
+
+    color: #6f9;
+
+    font: 11px Arial;
+
+    pointer-events: none;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+MENU
+========================================================= -->
+
+<div id="startScreen">
+
+    <div id="title">
+        DARK DUNGEON
+    </div>
+
+    <div id="subtitle">
+        THE FORGOTTEN DEPTHS
+    </div>
+
+    <div id="classTitle">
+        ESCOLHA SEU CAMPEÃO
+    </div>
+
+
+    <div id="classes">
+
+
+        <div
+            class="classCard selected"
+            data-class="knight">
+
+            <div class="classIcon">
+                ⚔️
+            </div>
+
+            <h2>CAVALEIRO</h2>
+
+            <p>
+                Guerreiro equilibrado.
+                Forte no combate corpo a corpo.
+            </p>
+
+        </div>
+
+
+        <div
+            class="classCard"
+            data-class="mage">
+
+            <div class="classIcon">
+                🔮
+            </div>
+
+            <h2>MAGO</h2>
+
+            <p>
+                Usa magia para atacar
+                inimigos à distância.
+            </p>
+
+        </div>
+
+
+        <div
+            class="classCard"
+            data-class="spartan">
+
+            <div class="classIcon">
+                🛡️
+            </div>
+
+            <h2>ESPARTANO</h2>
+
+            <p>
+                Muito resistente e possui
+                ataques extremamente fortes.
+            </p>
+
+        </div>
+
+
+        <div
+            class="classCard"
+            data-class="priest">
+
+            <div class="classIcon">
+                ✚
+            </div>
+
+            <h2>SACERDOTE</h2>
+
+            <p>
+                Guerreiro sagrado capaz
+                de recuperar sua vida.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <button id="startButton">
+        ENTRAR NA MASMORRA
+    </button>
+
+</div>
+
+
+<!-- =========================================================
+HUD
+========================================================= -->
+
+<div id="hud">
+
+    <div id="className">
+        CAVALEIRO
+    </div>
+
+    <div id="healthBar">
+        <div id="healthFill"></div>
+    </div>
+
+    <div id="healthText">
+        120 / 120
+    </div>
+
+    <div id="roomText">
+        ROOM 0,0
+    </div>
+
+    <div id="onlineText">
+        Jogadores: 1
+    </div>
+
+</div>
+
+
+<div id="connection">
+    CONECTANDO...
+</div>
+
+
+<div id="crosshair"></div>
+
+<div id="ability"></div>
+
+<div id="message"></div>
+
+
+<!-- =========================================================
+GAME
+========================================================= -->
+
+<script type="module">
+
+import * as THREE
+from "three";
+
+
+/*
+==============================================================
+IMPORTANTE
+
+A sintaxe acima precisa ser importada como:
+
+import * as THREE from "three";
+
+Mantemos o import separado dos addons.
+==============================================================
+*/
+
+import {
+    PointerLockControls
+} from "three/addons/controls/PointerLockControls.js";
+
+
+/* ============================================================
+   FIREBASE
+============================================================ */
+
+import {
+    initializeApp
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+
+import {
+    getDatabase,
+    ref,
+    set,
+    update,
+    onValue,
+    onDisconnect,
+    remove
+} from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+
+const firebaseConfig = {
+
+    apiKey:
+        "AIzaSyDkOXi1MYbb9rp5Zo7HNfQYnhJBMPp8bs",
+
+    authDomain:
+        "testdogithub.firebaseapp.com",
+
+    databaseURL:
+        "https://testdogithub-default-rtdb.firebaseio.com",
+
+    projectId:
+        "testdogithub",
+
+    storageBucket:
+        "testdogithub.firebasestorage.app",
+
+    messagingSenderId:
+        "1045850387937",
+
+    appId:
+        "1:1045850387937:web:276466d0630d8e3a7f8ea0"
+
+};
+
+
+const firebaseApp =
+    initializeApp(
+        firebaseConfig
+    );
+
+
+const database =
+    getDatabase(
+        firebaseApp
+    );
+
+
+/* ============================================================
+   ID ÚNICO
+============================================================ */
+
+const playerId =
+    crypto.randomUUID();
+
+
+/* ============================================================
+   CONFIGURAÇÕES
+============================================================ */
+
+const ROOM_SIZE = 24;
+
+const ROOM_HEIGHT = 8;
+
+const WALL = .5;
+
+const PLAYER_HEIGHT = 1.7;
+
+const PLAYER_SPEED = 5;
+
+
+/* ============================================================
+   CLASSES
+============================================================ */
+
+const CLASS_DATA = {
+
+    knight: {
+
+        name: "CAVALEIRO",
+
+        health: 120,
+
+        damage: 35,
+
+        range: 3,
+
+        cooldown: .45,
+
+        ability:
+            "CLIQUE ESQUERDO • ATAQUE DE ESPADA"
+
+    },
+
+
+    mage: {
+
+        name: "MAGO",
+
+        health: 75,
+
+        damage: 30,
+
+        range: 40,
+
+        cooldown: .3,
+
+        ability:
+            "CLIQUE ESQUERDO • PROJÉTIL ARCANO"
+
+    },
+
+
+    spartan: {
+
+        name: "ESPARTANO",
+
+        health: 160,
+
+        damage: 50,
+
+        range: 3.5,
+
+        cooldown: .8,
+
+        ability:
+            "CLIQUE ESQUERDO • ATAQUE DE LANÇA"
+
+    },
+
+
+    priest: {
+
+        name: "SACERDOTE",
+
+        health: 100,
+
+        damage: 15,
+
+        range: 3,
+
+        cooldown: .6,
+
+        ability:
+            "CLIQUE ESQUERDO • CURA SAGRADA"
+
+    }
+
+};
+
+
+/* ============================================================
+   ESTADO
+============================================================ */
+
+let selectedClass =
+    "knight";
+
+
+let playerHealth =
+    CLASS_DATA.knight.health;
+
+
+let playerMaxHealth =
+    CLASS_DATA.knight.health;
+
+
+let gameStarted =
+    false;
+
+
+let attackCooldown =
+    0;
+
+
+let networkTimer =
+    0;
+
+
+let currentRoom = {
+
+    x: 0,
+
+    y: 0
+
+};
+
+
+const keys = {};
+
+const enemies = [];
+
+const projectiles = [];
+
+const onlinePlayers = {};
+
+const dungeonRooms = {};
+
+
+/* ============================================================
+   CENA
+============================================================ */
+
+const scene =
+    new THREE.Scene();
+
+
+scene.background =
+    new THREE.Color(
+        0x020202
+    );
+
+
+scene.fog =
+    new THREE.FogExp2(
+        0x050403,
+        .035
+    );
+
+
+/* ============================================================
+   CÂMERA
+============================================================ */
+
+const camera =
+    new THREE.PerspectiveCamera(
+
+        75,
+
+        innerWidth /
+        innerHeight,
+
+        .1,
+
+        200
+
+    );
+
+
+camera.position.set(
+
+    0,
+
+    PLAYER_HEIGHT,
+
+    0
+
+);
+
+
+scene.add(
+    camera
+);
+
+
+/* ============================================================
+   RENDERER
+============================================================ */
+
+const renderer =
+    new THREE.WebGLRenderer({
+
+        antialias: true
+
+    });
+
+
+renderer.setSize(
+
+    innerWidth,
+
+    innerHeight
+
+);
+
+
+renderer.setPixelRatio(
+
+    Math.min(
+        devicePixelRatio,
+        2
+    )
+
+);
+
+
+renderer.shadowMap.enabled =
+    true;
+
+
+renderer.shadowMap.type =
+    THREE.PCFSoftShadowMap;
+
+
+renderer.outputColorSpace =
+    THREE.SRGBColorSpace;
+
+
+document.body.appendChild(
+    renderer.domElement
+);
+
+
+/* ============================================================
+   LUZ GLOBAL
+============================================================ */
+
+const ambient =
+    new THREE.HemisphereLight(
+
+        0x493b2a,
+
+        0x050403,
+
+        .25
+
+    );
+
+
+scene.add(
+    ambient
+);
+
+
+/* ============================================================
+   CONTROLES
+============================================================ */
+
+const controls =
+    new PointerLockControls(
+
+        camera,
+
+        document.body
+
+    );
+
+
+/* ============================================================
+   MENU - CLASSES
+============================================================ */
+
+document
+.querySelectorAll(".classCard")
+.forEach(card => {
+
+    card.addEventListener(
+        "click",
+        () => {
+
+            document
+            .querySelectorAll(".classCard")
+            .forEach(c => {
+
+                c.classList.remove(
+                    "selected"
+                );
+
+            });
+
+
+            card.classList.add(
+                "selected"
+            );
+
+
+            selectedClass =
+                card.dataset.class;
+
+        }
+    );
+
+});
+
+
+/* ============================================================
+   INICIAR
+============================================================ */
+
+document
+.getElementById("startButton")
+.addEventListener(
+    "click",
+    event => {
+
+        event.stopPropagation();
+
+        startGame();
+
+    }
+);
+
+
+function startGame() {
+
+    if (
+        gameStarted
+    )
+        return;
+
+
+    const data =
+        CLASS_DATA[
+            selectedClass
+        ];
+
+
+    playerMaxHealth =
+        data.health;
+
+
+    playerHealth =
+        data.health;
+
+
+    document
+    .getElementById(
+        "className"
+    )
+    .textContent =
+        data.name;
+
+
+    document
+    .getElementById(
+        "ability"
+    )
+    .textContent =
+        data.ability;
+
+
+    updateHealth();
+
+
+    document
+    .getElementById(
+        "startScreen"
+    )
+    .style.display =
+        "none";
+
+
+    gameStarted = true;
+
+
+    generateDungeon();
+
+
+    loadRoom(
+        0,
+        0
+    );
+
+
+    createOnlinePlayer();
+
+
+    listenToPlayers();
+
+
+    controls.lock();
+
+}
+
+
+/* ============================================================
+   TECLADO
+============================================================ */
+
+document.addEventListener(
+    "keydown",
+    e => {
+
+        keys[e.code] = true;
+
+    }
+);
+
+
+document.addEventListener(
+    "keyup",
+    e => {
+
+        keys[e.code] = false;
+
+    }
+);
+
+
+/* ============================================================
+   MATERIAIS
+============================================================ */
+
+const floorMaterial =
+    new THREE.MeshStandardMaterial({
+
+        color: 0x15120f,
+
+        roughness: 1
+
+    });
+
+
+const wallMaterial =
+    new THREE.MeshStandardMaterial({
+
+        color: 0x211c17,
+
+        roughness: 1
+
+    });
+
+
+const ceilingMaterial =
+    new THREE.MeshStandardMaterial({
+
+        color: 0x080706,
+
+        roughness: 1
+
+    });
+
+
+/* ============================================================
+   SALA
+============================================================ */
+
+function createRoom(
+    connections
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    const half =
+        ROOM_SIZE / 2;
+
+
+    /* CHÃO */
+
+    const floor =
+        new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+
+                ROOM_SIZE,
+
+                .5,
+
+                ROOM_SIZE
+
+            ),
+
+            floorMaterial
+
+        );
+
+
+    floor.position.y =
+        -.25;
+
+
+    floor.receiveShadow =
+        true;
+
+
+    group.add(
+        floor
+    );
+
+
+    /* TETO */
+
+    const ceiling =
+        new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+
+                ROOM_SIZE,
+
+                .5,
+
+                ROOM_SIZE
+
+            ),
+
+            ceilingMaterial
+
+        );
+
+
+    ceiling.position.y =
+        ROOM_HEIGHT;
+
+
+    group.add(
+        ceiling
+    );
+
+
+    /* PAREDES */
+
+    createHorizontalWall(
+
+        group,
+
+        0,
+
+        -half,
+
+        connections.north
+
+    );
+
+
+    createHorizontalWall(
+
+        group,
+
+        0,
+
+        half,
+
+        connections.south
+
+    );
+
+
+    createVerticalWall(
+
+        group,
+
+        -half,
+
+        connections.west
+
+    );
+
+
+    createVerticalWall(
+
+        group,
+
+        half,
+
+        connections.east
+
+    );
+
+
+    /* PILARES */
+
+    createPillar(
+        group,
+        -9,
+        -9
+    );
+
+    createPillar(
+        group,
+        9,
+        -9
+    );
+
+    createPillar(
+        group,
+        -9,
+        9
+    );
+
+    createPillar(
+        group,
+        9,
+        9
+    );
+
+
+    /* TOCHAS */
+
+    createTorch(
+        group,
+        -10.5,
+        -10.5
+    );
+
+    createTorch(
+        group,
+        10.5,
+        10.5
+    );
+
+
+    /* DECORAÇÕES */
+
+    createDecoration(
+        group
+    );
+
+
+    return group;
+
+}
+
+
+/* ============================================================
+   PAREDE HORIZONTAL
+============================================================ */
+
+function createHorizontalWall(
+    group,
+    x,
+    z,
+    door
+) {
+
+    const width =
+        ROOM_SIZE;
+
+
+    const height =
+        ROOM_HEIGHT;
+
+
+    if (!door) {
+
+        const wall =
+            new THREE.Mesh(
+
+                new THREE.BoxGeometry(
+
+                    width,
+
+                    height,
+
+                    WALL
+
+                ),
+
+                wallMaterial
+
+            );
+
+
+        wall.position.set(
+
+            x,
+
+            height / 2,
+
+            z
+
+        );
+
+
+        group.add(
+            wall
+        );
+
+
+        return;
+
+    }
+
+
+    const doorWidth = 5;
+
+    const side =
+        (width - doorWidth) / 2;
+
+
+    const a =
+        new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+
+                side,
+
+                height,
+
+                WALL
+
+            ),
+
+            wallMaterial
+
+        );
+
+
+    a.position.set(
+
+        -(
+            (doorWidth + side) /
+            2
+        ),
+
+        height / 2,
+
+        z
+
+    );
+
+
+    group.add(
+        a
+    );
+
+
+    const b =
+        new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+
+                side,
+
+                height,
+
+                WALL
+
+            ),
+
+            wallMaterial
+
+        );
+
+
+    b.position.set(
+
+        (
+            (doorWidth + side) /
+            2
+        ),
+
+        height / 2,
+
+        z
+
+    );
+
+
+    group.add(
+        b
+    );
+
+
+    const top =
+        new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+
+                doorWidth,
+
+                2.5,
+
+                WALL
+
+            ),
+
+            wallMaterial
+
+        );
+
+
+    top.position.set(
+
+        0,
+
+        height - 1.25,
+
+        z
+
+    );
+
+
+    group.add(
+        top
+    );
+
+}
+
+
+/* ============================================================
+   PAREDE VERTICAL
+============================================================ */
+
+function createVerticalWall(
+    group,
+    x,
+    door
+) {
+
+    const depth =
+        ROOM_SIZE;
+
+
+    const height =
+        ROOM_HEIGHT;
+
+
+    if (!door) {
+
+        const wall =
+            new THREE.Mesh(
+
+                new THREE.BoxGeometry(
+
+                    WALL,
+
+                    height,
+
+                    depth
+
+                ),
+
+                wallMaterial
+
+            );
+
+
+        wall.position.set(
+
+            x,
+
+            height / 2,
+
+            0
+
+        );
+
+
+        group.add(
+            wall
+        );
+
+
+        return;
+
+    }
+
+
+    const doorWidth = 5;
+
+    const side =
+        (depth - doorWidth) / 2;
+
+
+    const a =
+        new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+
+                WALL,
+
+                height,
+
+                side
+
+            ),
+
+            wallMaterial
+
+        );
+
+
+    a.position.set(
+
+        x,
+
+        height / 2,
+
+        -(
+            (doorWidth + side) /
+            2
+        )
+
+    );
+
+
+    group.add(
+        a
+    );
+
+
+    const b =
+        new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+
+                WALL,
+
+                height,
+
+                side
+
+            ),
+
+            wallMaterial
+
+        );
+
+
+    b.position.set(
+
+        x,
+
+        height / 2,
+
+        (
+            (doorWidth + side) /
+            2
+        )
+
+    );
+
+
+    group.add(
+        b
+    );
+
+
+    const top =
+        new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+
+                WALL,
+
+                2.5,
+
+                doorWidth
+
+            ),
+
+            wallMaterial
+
+        );
+
+
+    top.position.set(
+
+        x,
+
+        height - 1.25,
+
+        0
+
+    );
+
+
+    group.add(
+        top
+    );
+
+}
+
+
+/* ============================================================
+   PILAR
+============================================================ */
+
+function createPillar(
+    group,
+    x,
+    z
+) {
+
+    const pillar =
+        new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+
+                .7,
+
+                .9,
+
+                5,
+
+                8
+
+            ),
+
+            new THREE.MeshStandardMaterial({
+
+                color: 0x302923,
+
+                roughness: 1
+
+            })
+
+        );
+
+
+    pillar.position.set(
+
+        x,
+
+        2.5,
+
+        z
+
+    );
+
+
+    pillar.castShadow =
+        true;
+
+
+    group.add(
+        pillar
+    );
+
+}
+
+
+/* ============================================================
+   TOCHA
+============================================================ */
+
+function createTorch(
+    group,
+    x,
+    z
+) {
+
+    const light =
+        new THREE.PointLight(
+
+            0xff5a16,
+
+            12,
+
+            9,
+
+            2
+
+        );
+
+
+    light.position.set(
+
+        x,
+
+        3,
+
+        z
+
+    );
+
+
+    group.add(
+        light
+    );
+
+
+    const flame =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+
+                .22,
+
+                8,
+
+                8
+
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                color: 0xff5a16
+
+            })
+
+        );
+
+
+    flame.position.set(
+
+        x,
+
+        3,
+
+        z
+
+    );
+
+
+    group.add(
+        flame
+    );
+
+}
+
+
+/* ============================================================
+   DECORAÇÕES
+============================================================ */
+
+function createDecoration(
+    group
+) {
+
+    const count =
+        3 +
+        Math.floor(
+            Math.random() * 5
+        );
+
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        const size =
+            .3 +
+            Math.random() * .6;
+
+
+        const stone =
+            new THREE.Mesh(
+
+                new THREE.DodecahedronGeometry(
+                    size
+                ),
+
+                new THREE.MeshStandardMaterial({
+
+                    color: 0x29231f,
+
+                    roughness: 1
+
+                })
+
+            );
+
+
+        stone.position.set(
+
+            (
+                Math.random() -
+                .5
+            ) * 18,
+
+            size,
+
+            (
+                Math.random() -
+                .5
+            ) * 18
+
+        );
+
+
+        group.add(
+            stone
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   DUNGEON PROCEDURAL
+============================================================ */
+
+function generateDungeon() {
+
+    for (
+        const key in dungeonRooms
+    ) {
+
+        if (
+            dungeonRooms[key].group
+        ) {
+
+            scene.remove(
+                dungeonRooms[key].group
+            );
+
+        }
+
+    }
+
+
+    enemies.length = 0;
+
+
+    for (
+        const key in dungeonRooms
+    ) {
+
+        delete dungeonRooms[key];
+
+    }
+
+
+    const radius = 2;
+
+
+    /* CRIA SALAS */
+
+    createDungeonRoom(
+        0,
+        0
+    );
+
+
+    let x = 0;
+    let y = 0;
+
+
+    /* CAMINHO GARANTIDO */
+
+    for (
+        let i = 0;
+        i < 8;
+        i++
+    ) {
+
+        const directions = [
+
+            [1, 0],
+
+            [-1, 0],
+
+            [0, 1],
+
+            [0, -1]
+
+        ];
+
+
+        const d =
+            directions[
+                Math.floor(
+                    Math.random() *
+                    directions.length
+                )
+            ];
+
+
+        const nx =
+            x + d[0];
+
+        const ny =
+            y + d[1];
+
+
+        if (
+            Math.abs(nx) <= radius &&
+            Math.abs(ny) <= radius
+        ) {
+
+            x = nx;
+
+            y = ny;
+
+            createDungeonRoom(
+                x,
+                y
+            );
+
+        }
+
+    }
+
+
+    /* SALAS EXTRAS */
+
+    for (
+        let rx = -radius;
+        rx <= radius;
+        rx++
+    ) {
+
+        for (
+            let ry = -radius;
+            ry <= radius;
+            ry++
+        ) {
+
+            if (
+                hasRoom(
+                    rx,
+                    ry
+                )
+            )
+                continue;
+
+
+            if (
+                Math.random() < .5
+            ) {
+
+                createDungeonRoom(
+                    rx,
+                    ry
+                );
+
+            }
+
+        }
+
+    }
+
+
+    rebuildDungeon();
+
+}
+
+
+/* ============================================================
+   REGISTRO DE SALA
+============================================================ */
+
+function createDungeonRoom(
+    x,
+    y
+) {
+
+    const key =
+        `${x},${y}`;
+
+
+    if (
+        dungeonRooms[key]
+    )
+        return;
+
+
+    dungeonRooms[key] = {
+
+        x,
+
+        y,
+
+        connections: {},
+
+        group: null
+
+    };
+
+}
+
+
+/* ============================================================
+   EXISTE SALA?
+============================================================ */
+
+function hasRoom(
+    x,
+    y
+) {
+
+    return !!dungeonRooms[
+        `${x},${y}`
+    ];
+
+}
+
+
+/* ============================================================
+   RECONSTRUIR DUNGEON
+============================================================ */
+
+function rebuildDungeon() {
+
+    for (
+        const key in dungeonRooms
+    ) {
+
+        const room =
+            dungeonRooms[key];
+
+
+        if (
+            room.group
+        ) {
+
+            scene.remove(
+                room.group
+            );
+
+        }
+
+
+        room.connections = {
+
+            north:
+                hasRoom(
+                    room.x,
+                    room.y - 1
+                ),
+
+            south:
+                hasRoom(
+                    room.x,
+                    room.y + 1
+                ),
+
+            east:
+                hasRoom(
+                    room.x + 1,
+                    room.y
+                ),
+
+            west:
+                hasRoom(
+                    room.x - 1,
+                    room.y
+                )
+
+        };
+
+
+        room.group =
+            createRoom(
+                room.connections
+            );
+
+
+        room.group.position.set(
+
+            room.x * ROOM_SIZE,
+
+            0,
+
+            room.y * ROOM_SIZE
+
+        );
+
+
+        scene.add(
+            room.group
+        );
+
+    }
+
+
+    /* INIMIGOS */
+
+    for (
+        const key in dungeonRooms
+    ) {
+
+        const room =
+            dungeonRooms[key];
+
+
+        if (
+            room.x === 0 &&
+            room.y === 0
+        )
+            continue;
+
+
+        if (
+            Math.random() < .8
+        ) {
+
+            const amount =
+                1 +
+                Math.floor(
+                    Math.random() * 3
+                );
+
+
+            for (
+                let i = 0;
+                i < amount;
+                i++
+            ) {
+
+                spawnEnemy(
+
+                    room.x,
+
+                    room.y
+
+                );
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* ============================================================
+   CARREGAR SALA
+============================================================ */
+
+function loadRoom(
+    x,
+    y
+) {
+
+    currentRoom.x =
+        x;
+
+    currentRoom.y =
+        y;
+
+
+    camera.position.set(
+
+        x * ROOM_SIZE,
+
+        PLAYER_HEIGHT,
+
+        y * ROOM_SIZE
+
+    );
+
+
+    document
+    .getElementById(
+        "roomText"
+    )
+    .textContent =
+        `ROOM ${x},${y}`;
+
+}
+
+
+/* ============================================================
+   INIMIGOS
+============================================================ */
+
+function spawnEnemy(
+    roomX,
+    roomY
+) {
+
+    const types = [
+
+        "goblin",
+
+        "skeleton",
+
+        "cultist"
+
+    ];
+
+
+    const type =
+        types[
+            Math.floor(
+                Math.random() *
+                types.length
+            )
+        ];
+
+
+    const enemy =
+        createEnemy(
+            type
+        );
+
+
+    enemy.position.set(
+
+        roomX * ROOM_SIZE +
+        (
+            Math.random() -
+            .5
+        ) * 15,
+
+        0,
+
+        roomY * ROOM_SIZE +
+        (
+            Math.random() -
+            .5
+        ) * 15
+
+    );
+
+
+    enemy.userData.roomX =
+        roomX;
+
+
+    enemy.userData.roomY =
+        roomY;
+
+
+    scene.add(
+        enemy
+    );
+
+
+    enemies.push(
+        enemy
+    );
+
+}
+
+
+/* ============================================================
+   CRIAR INIMIGO
+============================================================ */
+
+function createEnemy(
+    type
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    let color =
+        0x385b25;
+
+
+    let health =
+        50;
+
+
+    let speed =
+        2;
+
+
+    let damage =
+        8;
+
+
+    let scale =
+        1;
+
+
+    if (
+        type === "skeleton"
+    ) {
+
+        color =
+            0xbdb49a;
+
+        health =
+            70;
+
+        speed =
+            1.5;
+
+        damage =
+            12;
+
+        scale =
+            1.05;
+
+    }
+
+
+    if (
+        type === "cultist"
+    ) {
+
+        color =
+            0x351d43;
+
+        health =
+            90;
+
+        speed =
+            1.2;
+
+        damage =
+            16;
+
+        scale =
+            1.15;
+
+    }
+
+
+    const material =
+        new THREE.MeshStandardMaterial({
+
+            color,
+
+            roughness: .9
+
+        });
+
+
+    const body =
+        new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+
+                .4 * scale,
+
+                .5 * scale,
+
+                1.2 * scale,
+
+                8
+
+            ),
+
+            material
+
+        );
+
+
+    body.position.y =
+        .8 * scale;
+
+
+    group.add(
+        body
+    );
+
+
+    const head =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+
+                .38 * scale,
+
+                8,
+
+                8
+
+            ),
+
+            material.clone()
+
+        );
+
+
+    head.position.y =
+        1.7 * scale;
+
+
+    group.add(
+        head
+    );
+
+
+    const eyeMaterial =
+        new THREE.MeshBasicMaterial({
+
+            color:
+                type === "cultist"
+                    ? 0xff00ff
+                    : 0xff2222
+
+        });
+
+
+    for (
+        const side of [-1, 1]
+    ) {
+
+        const eye =
+            new THREE.Mesh(
+
+                new THREE.SphereGeometry(
+                    .06,
+                    6,
+                    6
+                ),
+
+                eyeMaterial
+
+            );
+
+
+        eye.position.set(
+
+            side * .14,
+
+            1.75 * scale,
+
+            -.32 * scale
+
+        );
+
+
+        group.add(
+            eye
+        );
+
+    }
+
+
+    group.userData = {
+
+        type,
+
+        health,
+
+        maxHealth:
+            health,
+
+        speed,
+
+        damage,
+
+        attackTimer: 0
+
+    };
+
+
+    return group;
+
+}
+
+
+/* ============================================================
+   IA
+============================================================ */
+
+function updateEnemies(
+    delta
+) {
+
+    for (
+        let i = enemies.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const enemy =
+            enemies[i];
+
+
+        if (
+            !enemy.parent
+        )
+            continue;
+
+
+        const data =
+            enemy.userData;
+
+
+        const distance =
+            enemy.position.distanceTo(
+                camera.position
+            );
+
+
+        if (
+            distance > 14
+        )
+            continue;
+
+
+        const direction =
+            new THREE.Vector3()
+            .subVectors(
+
+                camera.position,
+
+                enemy.position
+
+            );
+
+
+        direction.y = 0;
+
+
+        if (
+            direction.length() > 1.7
+        ) {
+
+            direction.normalize();
+
+
+            enemy.position.add(
+
+                direction.multiplyScalar(
+
+                    data.speed *
+                    delta
+
+                )
+
+            );
+
+
+            enemy.lookAt(
+
+                camera.position.x,
+
+                enemy.position.y,
+
+                camera.position.z
+
+            );
+
+        }
+        else {
+
+            data.attackTimer -=
+                delta;
+
+
+            if (
+                data.attackTimer <= 0
+            ) {
+
+                damagePlayer(
+                    data.damage
+                );
+
+
+                data.attackTimer =
+                    1.2;
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* ============================================================
+   DANO PLAYER
+============================================================ */
+
+function damagePlayer(
+    damage
+) {
+
+    playerHealth -=
+        damage;
+
+
+    if (
+        playerHealth < 0
+    )
+        playerHealth = 0;
+
+
+    updateHealth();
+
+
+    if (
+        playerHealth <= 0
+    ) {
+
+        showMessage(
+            "VOCÊ MORREU"
+        );
+
+
+        setTimeout(
+            () => {
+
+                playerHealth =
+                    playerMaxHealth;
+
+
+                updateHealth();
+
+
+                loadRoom(
+                    0,
+                    0
+                );
+
+            },
+            1800
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   VIDA
+============================================================ */
+
+function updateHealth() {
+
+    const percent =
+        (
+            playerHealth /
+            playerMaxHealth
+        ) * 100;
+
+
+    document
+    .getElementById(
+        "healthFill"
+    )
+    .style.width =
+        `${Math.max(0, percent)}%`;
+
+
+    document
+    .getElementById(
+        "healthText"
+    )
+    .textContent =
+        `${Math.ceil(playerHealth)}
+        / ${playerMaxHealth}`;
+
+}
+
+
+/* ============================================================
+   ATAQUE
+============================================================ */
+
+document.addEventListener(
+    "mousedown",
+    event => {
+
+        if (
+            !controls.isLocked
+        )
+            return;
+
+
+        if (
+            event.button !== 0
+        )
+            return;
+
+
+        if (
+            attackCooldown > 0
+        )
+            return;
+
+
+        attackCooldown =
+            CLASS_DATA[
+                selectedClass
+            ].cooldown;
+
+
+        attack();
+
+    }
+);
+
+
+/* ============================================================
+   ATAQUE
+============================================================ */
+
+function attack() {
+
+    if (
+        selectedClass ===
+        "mage"
+    ) {
+
+        fireMagic();
+
+        return;
+
+    }
+
+
+    if (
+        selectedClass ===
+        "priest"
+    ) {
+
+        healPlayer();
+
+        return;
+
+    }
+
+
+    const data =
+        CLASS_DATA[
+            selectedClass
+        ];
+
+
+    const forward =
+        new THREE.Vector3();
+
+
+    camera.getWorldDirection(
+        forward
+    );
+
+
+    let closest =
+        null;
+
+
+    let distanceBest =
+        data.range;
+
+
+    for (
+        const enemy of enemies
+    ) {
+
+        const distance =
+            enemy.position.distanceTo(
+                camera.position
+            );
+
+
+        if (
+            distance >=
+            distanceBest
+        )
+            continue;
+
+
+        const toEnemy =
+            new THREE.Vector3()
+            .subVectors(
+
+                enemy.position,
+
+                camera.position
+
+            )
+            .normalize();
+
+
+        const dot =
+            forward.dot(
+                toEnemy
+            );
+
+
+        if (
+            dot > .45
+        ) {
+
+            closest =
+                enemy;
+
+            distanceBest =
+                distance;
+
+        }
+
+    }
+
+
+    if (
+        closest
+    ) {
+
+        damageEnemy(
+
+            closest,
+
+            data.damage
+
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   MAGIA
+============================================================ */
+
+function fireMagic() {
+
+    const projectile =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+
+                .14,
+
+                12,
+
+                12
+
+            ),
+
+            new THREE.MeshStandardMaterial({
+
+                color: 0x742cff,
+
+                emissive: 0x4100aa,
+
+                emissiveIntensity: 4
+
+            })
+
+        );
+
+
+    projectile.position.copy(
+        camera.position
+    );
+
+
+    const direction =
+        new THREE.Vector3();
+
+
+    camera.getWorldDirection(
+        direction
+    );
+
+
+    projectile.userData.velocity =
+        direction.multiplyScalar(
+            18
+        );
+
+
+    projectile.userData.life =
+        3;
+
+
+    scene.add(
+        projectile
+    );
+
+
+    projectiles.push(
+        projectile
+    );
+
+}
+
+
+/* ============================================================
+   PROJÉTEIS
+============================================================ */
+
+function updateProjectiles(
+    delta
+) {
+
+    for (
+        let i =
+            projectiles.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const projectile =
+            projectiles[i];
+
+
+        projectile.position.add(
+
+            projectile.userData.velocity
+            .clone()
+            .multiplyScalar(
+                delta
+            )
+
+        );
+
+
+        projectile.userData.life -=
+            delta;
+
+
+        let hit =
+            false;
+
+
+        for (
+            const enemy of enemies
+        ) {
+
+            if (
+                enemy.position.distanceTo(
+                    projectile.position
+                ) < 1
+            ) {
+
+                damageEnemy(
+
+                    enemy,
+
+                    CLASS_DATA.mage.damage
+
+                );
+
+
+                hit =
+                    true;
+
+
+                break;
+
+            }
+
+        }
+
+
+        if (
+            projectile.userData.life <= 0 ||
+            hit
+        ) {
+
+            scene.remove(
+                projectile
+            );
+
+
+            projectiles.splice(
+                i,
+                1
+            );
+
+        }
+
+    }
+
+}
+
+
+/* ============================================================
+   DANO INIMIGO
+============================================================ */
+
+function damageEnemy(
+    enemy,
+    damage
+) {
+
+    if (
+        !enemy.parent
+    )
+        return;
+
+
+    enemy.userData.health -=
+        damage;
+
+
+    if (
+        enemy.userData.health <= 0
+    ) {
+
+        killEnemy(
+            enemy
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   MORTE INIMIGO
+============================================================ */
+
+function killEnemy(
+    enemy
+) {
+
+    const index =
+        enemies.indexOf(
+            enemy
+        );
+
+
+    if (
+        index >= 0
+    ) {
+
+        enemies.splice(
+            index,
+            1
+        );
+
+    }
+
+
+    scene.remove(
+        enemy
+    );
+
+
+    showMessage(
+        "INIMIGO DERROTADO"
+    );
+
+}
+
+
+/* ============================================================
+   CURA
+============================================================ */
+
+function healPlayer() {
+
+    const amount =
+        30;
+
+
+    playerHealth =
+        Math.min(
+
+            playerMaxHealth,
+
+            playerHealth +
+            amount
+
+        );
+
+
+    updateHealth();
+
+
+    showMessage(
+        "+ CURA SAGRADA"
+    );
+
+}
+
+
+/* ============================================================
+   MOVIMENTO
+============================================================ */
+
+function updatePlayer(
+    delta
+) {
+
+    if (
+        !controls.isLocked
+    )
+        return;
+
+
+    let forward = 0;
+
+    let right = 0;
+
+
+    if (
+        keys["KeyW"]
+    )
+        forward++;
+
+
+    if (
+        keys["KeyS"]
+    )
+        forward--;
+
+
+    if (
+        keys["KeyD"]
+    )
+        right++;
+
+
+    if (
+        keys["KeyA"]
+    )
+        right--;
+
+
+    if (
+        forward !== 0 ||
+        right !== 0
+    ) {
+
+        const length =
+            Math.sqrt(
+
+                forward *
+                forward +
+
+                right *
+                right
+
+            );
+
+
+        forward /=
+            length;
+
+
+        right /=
+            length;
+
+
+        const speed =
+            PLAYER_SPEED *
+            delta;
+
+
+        controls.moveForward(
+
+            forward *
+            speed
+
+        );
+
+
+        controls.moveRight(
+
+            right *
+            speed
+
+        );
+
+    }
+
+
+    handleRoomTransition();
+
+
+    camera.position.y =
+        PLAYER_HEIGHT;
+
+}
+
+
+/* ============================================================
+   TRANSIÇÃO DE SALA
+============================================================ */
+
+function handleRoomTransition() {
+
+    let roomX =
+        Math.round(
+
+            camera.position.x /
+            ROOM_SIZE
+
+        );
+
+
+    let roomY =
+        Math.round(
+
+            camera.position.z /
+            ROOM_SIZE
+
+        );
+
+
+    const localX =
+        camera.position.x -
+        roomX * ROOM_SIZE;
+
+
+    const localZ =
+        camera.position.z -
+        roomY * ROOM_SIZE;
+
+
+    const half =
+        ROOM_SIZE / 2;
+
+
+    if (
+        localZ < -half &&
+        hasRoom(
+            roomX,
+            roomY - 1
+        )
+    ) {
+
+        roomY--;
+
+        camera.position.z =
+            roomY *
+            ROOM_SIZE +
+            half -
+            1;
+
+    }
+
+
+    if (
+        localZ > half &&
+        hasRoom(
+            roomX,
+            roomY + 1
+        )
+    ) {
+
+        roomY++;
+
+        camera.position.z =
+            roomY *
+            ROOM_SIZE -
+            half +
+            1;
+
+    }
+
+
+    if (
+        localX > half &&
+        hasRoom(
+            roomX + 1,
+            roomY
+        )
+    ) {
+
+        roomX++;
+
+        camera.position.x =
+            roomX *
+            ROOM_SIZE -
+            half +
+            1;
+
+    }
+
+
+    if (
+        localX < -half &&
+        hasRoom(
+            roomX - 1,
+            roomY
+        )
+    ) {
+
+        roomX--;
+
+        camera.position.x =
+            roomX *
+            ROOM_SIZE +
+            half -
+            1;
+
+    }
+
+
+    const room =
+        dungeonRooms[
+            `${roomX},${roomY}`
+        ];
+
+
+    if (!room)
+        return;
+
+
+    const limit =
+        half - 1;
+
+
+    const centerX =
+        roomX *
+        ROOM_SIZE;
+
+
+    const centerZ =
+        roomY *
+        ROOM_SIZE;
+
+
+    if (
+        !room.connections.west
+    ) {
+
+        camera.position.x =
+            Math.max(
+
+                camera.position.x,
+
+                centerX -
+                limit
+
+            );
+
+    }
+
+
+    if (
+        !room.connections.east
+    ) {
+
+        camera.position.x =
+            Math.min(
+
+                camera.position.x,
+
+                centerX +
+                limit
+
+            );
+
+    }
+
+
+    if (
+        !room.connections.north
+    ) {
+
+        camera.position.z =
+            Math.max(
+
+                camera.position.z,
+
+                centerZ -
+                limit
+
+            );
+
+    }
+
+
+    if (
+        !room.connections.south
+    ) {
+
+        camera.position.z =
+            Math.min(
+
+                camera.position.z,
+
+                centerZ +
+                limit
+
+            );
+
+    }
+
+
+    if (
+        currentRoom.x !== roomX ||
+        currentRoom.y !== roomY
+    ) {
+
+        currentRoom.x =
+            roomX;
+
+        currentRoom.y =
+            roomY;
+
+
+        showMessage(
+            `ROOM ${roomX},${roomY}`
+        );
+
+    }
+
+
+    document
+    .getElementById(
+        "roomText"
+    )
+    .textContent =
+        `ROOM ${roomX},${roomY}`;
+
+}
+
+
+/* ============================================================
+   FIREBASE - CRIAR PLAYER
+============================================================ */
+
+function createOnlinePlayer() {
+
+    const playerRef =
+        ref(
+
+            database,
+
+            `players/${playerId}`
+
+        );
+
+
+    set(
+
+        playerRef,
+
+        {
+
+            class:
+                selectedClass,
+
+            x:
+                camera.position.x,
+
+            y:
+                camera.position.y,
+
+            z:
+                camera.position.z,
+
+            rotation:
+                camera.rotation.y,
+
+            health:
+                playerHealth,
+
+            roomX:
+                currentRoom.x,
+
+            roomY:
+                currentRoom.y,
+
+            online:
+                true
+
+        }
+
+    )
+    .then(
+        () => {
+
+            document
+            .getElementById(
+                "connection"
+            )
+            .textContent =
+                "● ONLINE";
+
+            document
+            .getElementById(
+                "connection"
+            )
+            .style.color =
+                "#69b86e";
+
+        }
+    )
+    .catch(
+        error => {
+
+            console.error(
+                error
+            );
+
+
+            document
+            .getElementById(
+                "connection"
+            )
+            .textContent =
+                "ERRO FIREBASE";
+
+            document
+            .getElementById(
+                "connection"
+            )
+            .style.color =
+                "#d44";
+
+        }
+    );
+
+
+    onDisconnect(
+        playerRef
+    )
+    .remove();
+
+}
+
+
+/* ============================================================
+   FIREBASE - ATUALIZAR PLAYER
+============================================================ */
+
+function updateOnlinePlayer(
+    delta
+) {
+
+    if (
+        !gameStarted
+    )
+        return;
+
+
+    networkTimer +=
+        delta;
+
+
+    /*
+       Aproximadamente 16 atualizações por segundo.
+    */
+
+    if (
+        networkTimer < .06
+    )
+        return;
+
+
+    networkTimer = 0;
+
+
+    update(
+
+        ref(
+
+            database,
+
+            `players/${playerId}`
+
+        ),
+
+        {
+
+            x:
+                camera.position.x,
+
+            y:
+                camera.position.y,
+
+            z:
+                camera.position.z,
+
+            rotation:
+                camera.rotation.y,
+
+            health:
+                playerHealth,
+
+            class:
+                selectedClass,
+
+            roomX:
+                currentRoom.x,
+
+            roomY:
+                currentRoom.y,
+
+            online:
+                true
+
+        }
+
+    )
+    .catch(
+        error => {
+
+            console.error(
+                "Firebase:",
+                error
+            );
+
+        }
+    );
+
+}
+
+
+/* ============================================================
+   FIREBASE - ESCUTAR JOGADORES
+============================================================ */
+
+function listenToPlayers() {
+
+    const playersRef =
+        ref(
+            database,
+            "players"
+        );
+
+
+    onValue(
+
+        playersRef,
+
+        snapshot => {
+
+            const players =
+                snapshot.val() ||
+                {};
+
+
+            let count =
+                Object.keys(
+                    players
+                ).length;
+
+
+            document
+            .getElementById(
+                "onlineText"
+            )
+            .textContent =
+                `Jogadores: ${count}`;
+
+
+            /*
+             * Atualizar jogadores existentes
+             */
+
+            for (
+                const id in players
+            ) {
+
+                if (
+                    id === playerId
+                )
+                    continue;
+
+
+                updateOtherPlayer(
+
+                    id,
+
+                    players[id]
+
+                );
+
+            }
+
+
+            /*
+             * Remover jogadores que saíram
+             */
+
+            for (
+                const id in onlinePlayers
+            ) {
+
+                if (
+                    !players[id]
+                ) {
+
+                    scene.remove(
+
+                        onlinePlayers[id]
+                            .mesh
+
+                    );
+
+
+                    delete
+                        onlinePlayers[id];
+
+                }
+
+            }
+
+        }
+
+    );
+
+}
+
+
+/* ============================================================
+   CRIAR OUTRO JOGADOR
+============================================================ */
+
+function createOtherPlayer(
+    data
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    let color =
+        0x777777;
+
+
+    if (
+        data.class ===
+        "mage"
+    ) {
+
+        color =
+            0x5435b8;
+
+    }
+
+
+    if (
+        data.class ===
+        "spartan"
+    ) {
+
+        color =
+            0x9a4526;
+
+    }
+
+
+    if (
+        data.class ===
+        "priest"
+    ) {
+
+        color =
+            0xd8d1ad;
+
+    }
+
+
+    const bodyMaterial =
+        new THREE.MeshStandardMaterial({
+
+            color,
+
+            roughness: .8
+
+        });
+
+
+    const body =
+        new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+
+                .4,
+
+                .5,
+
+                1.3,
+
+                8
+
+            ),
+
+            bodyMaterial
+
+        );
+
+
+    body.position.y =
+        .8;
+
+
+    body.castShadow =
+        true;
+
+
+    group.add(
+        body
+    );
+
+
+    const head =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+
+                .38,
+
+                10,
+
+                10
+
+            ),
+
+            bodyMaterial.clone()
+
+        );
+
+
+    head.position.y =
+        1.7;
+
+
+    head.castShadow =
+        true;
+
+
+    group.add(
+        head
+    );
+
+
+    /*
+     * Pequeno marcador acima da cabeça
+     */
+
+    const marker =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+
+                .08,
+
+                8,
+
+                8
+
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                color: 0x4fa3ff
+
+            })
+
+        );
+
+
+    marker.position.y =
+        2.25;
+
+
+    group.add(
+        marker
+    );
+
+
+    return group;
+
+}
+
+
+/* ============================================================
+   ATUALIZAR OUTRO JOGADOR
+============================================================ */
+
+function updateOtherPlayer(
+    id,
+    data
+) {
+
+    if (
+        !onlinePlayers[id]
+    ) {
+
+        const mesh =
+            createOtherPlayer(
+                data
+            );
+
+
+        scene.add(
+            mesh
+        );
+
+
+        onlinePlayers[id] = {
+
+            mesh,
+
+            target:
+                new THREE.Vector3(
+
+                    data.x,
+
+                    data.y,
+
+                    data.z
+
+                ),
+
+            rotation:
+                data.rotation || 0
+
+        };
+
+    }
+
+
+    const player =
+        onlinePlayers[id];
+
+
+    player.target.set(
+
+        Number(data.x) || 0,
+
+        Number(data.y) || PLAYER_HEIGHT,
+
+        Number(data.z) || 0
+
+    );
+
+
+    player.rotation =
+        Number(
+            data.rotation
+        ) || 0;
+
+
+    /*
+     * Se o personagem mudou de classe,
+     * recria o modelo.
+     */
+
+    if (
+        player.class !==
+        data.class
+    ) {
+
+        scene.remove(
+            player.mesh
+        );
+
+
+        player.mesh =
+            createOtherPlayer(
+                data
+            );
+
+
+        scene.add(
+            player.mesh
+        );
+
+
+        player.class =
+            data.class;
+
+    }
+
+}
+
+
+/* ============================================================
+   INTERPOLAÇÃO DOS OUTROS PLAYERS
+============================================================ */
+
+function updateOtherPlayers() {
+
+    for (
+        const id in onlinePlayers
+    ) {
+
+        const player =
+            onlinePlayers[id];
+
+
+        player.mesh.position.lerp(
+
+            player.target,
+
+            .22
+
+        );
+
+
+        player.mesh.rotation.y =
+            THREE.MathUtils.lerp(
+
+                player.mesh.rotation.y,
+
+                player.rotation,
+
+                .22
+
+            );
+
+    }
+
+}
+
+
+/* ============================================================
+   MENSAGEM
+============================================================ */
+
+let messageTimer;
+
+
+function showMessage(
+    text
+) {
+
+    const element =
+        document.getElementById(
+            "message"
+        );
+
+
+    element.textContent =
+        text;
+
+
+    element.style.opacity =
+        "1";
+
+
+    clearTimeout(
+        messageTimer
+    );
+
+
+    messageTimer =
+        setTimeout(
+            () => {
+
+                element.style.opacity =
+                    "0";
+
+            },
+            1200
+        );
+
+}
+
+
+/* ============================================================
+   DESCONEXÃO
+============================================================ */
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+
+        remove(
+
+            ref(
+
+                database,
+
+                `players/${playerId}`
+
+            )
+
+        );
+
+    }
+);
+
+
+/* ============================================================
+   LOOP
+============================================================ */
+
+const clock =
+    new THREE.Clock();
+
+
+function animate() {
+
+    requestAnimationFrame(
+        animate
+    );
+
+
+    const delta =
+        Math.min(
+
+            clock.getDelta(),
+
+            .05
+
+        );
+
+
+    if (
+        gameStarted
+    ) {
+
+        updatePlayer(
+            delta
+        );
+
+
+        updateEnemies(
+            delta
+        );
+
+
+        updateProjectiles(
+            delta
+        );
+
+
+        updateOnlinePlayer(
+            delta
+        );
+
+
+        updateOtherPlayers();
+
+
+        attackCooldown =
+            Math.max(
+
+                0,
+
+                attackCooldown -
+                delta
+
+            );
+
+    }
+
+
+    renderer.render(
+
+        scene,
+
+        camera
+
+    );
+
+}
+
+
+animate();
+
+
+/* ============================================================
+   RESIZE
+============================================================ */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        camera.aspect =
+            innerWidth /
+            innerHeight;
+
+
+        camera.updateProjectionMatrix();
+
+
+        renderer.setSize(
+
+            innerWidth,
+
+            innerHeight
+
+        );
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
