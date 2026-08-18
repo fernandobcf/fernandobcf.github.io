@@ -1,0 +1,4996 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Dark Dungeon PvP</title>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
+
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #000;
+
+    font-family: Georgia, serif;
+}
+
+canvas {
+    display: block;
+}
+
+
+/* =========================================================
+MENU
+========================================================= */
+
+#startScreen {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 100;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #21180f 0%,
+            #080706 45%,
+            #000 100%
+        );
+
+    color: white;
+
+    text-align: center;
+}
+
+#title {
+
+    color: #a9824c;
+
+    font-size: 46px;
+
+    letter-spacing: 10px;
+
+    text-shadow:
+        0 0 20px #70451f,
+        0 0 50px #160b04;
+
+    margin-bottom: 8px;
+}
+
+#subtitle {
+
+    color: #777;
+
+    font-size: 11px;
+
+    letter-spacing: 5px;
+
+    margin-bottom: 30px;
+}
+
+#classTitle {
+
+    color: #927044;
+
+    letter-spacing: 4px;
+
+    margin-bottom: 15px;
+}
+
+#classes {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    justify-content: center;
+
+    gap: 15px;
+
+    max-width: 900px;
+}
+
+.classCard {
+
+    width: 190px;
+
+    min-height: 225px;
+
+    padding: 18px;
+
+    text-align: center;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            180deg,
+            #1b1713,
+            #070707
+        );
+
+    border: 1px solid #30261b;
+
+    transition: .2s;
+}
+
+.classCard:hover {
+
+    transform: translateY(-6px);
+
+    border-color: #806039;
+}
+
+.classCard.selected {
+
+    border-color: #c0995c;
+
+    box-shadow:
+        0 0 30px
+        rgba(192,153,92,.2);
+}
+
+.classIcon {
+
+    width: 70px;
+
+    height: 70px;
+
+    margin: auto;
+
+    margin-bottom: 12px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            #30271e,
+            #080808
+        );
+
+    font-size: 40px;
+}
+
+.classCard h2 {
+
+    color: #b8955c;
+
+    font-size: 17px;
+
+    letter-spacing: 2px;
+
+    margin-bottom: 8px;
+}
+
+.classCard p {
+
+    color: #777;
+
+    font-family: Arial, sans-serif;
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}
+
+#startButton {
+
+    margin-top: 30px;
+
+    padding: 14px 45px;
+
+    color: #d8b979;
+
+    background:
+        linear-gradient(
+            #513d25,
+            #20160d
+        );
+
+    border: 1px solid #8c693d;
+
+    font-family: Georgia, serif;
+
+    letter-spacing: 3px;
+
+    cursor: pointer;
+}
+
+#startButton:hover {
+
+    background:
+        linear-gradient(
+            #694f2e,
+            #291b0f
+        );
+}
+
+
+/* =========================================================
+HUD
+========================================================= */
+
+#hud {
+
+    position: fixed;
+
+    left: 20px;
+
+    top: 20px;
+
+    z-index: 20;
+
+    pointer-events: none;
+
+    color: white;
+
+    text-shadow:
+        0 2px 5px #000;
+}
+
+#className {
+
+    color: #c09a5d;
+
+    font-size: 18px;
+
+    letter-spacing: 3px;
+}
+
+#teamName {
+
+    margin-top: 5px;
+
+    font: bold 12px Arial;
+
+    letter-spacing: 2px;
+}
+
+#healthBar {
+
+    width: 220px;
+
+    height: 12px;
+
+    margin-top: 8px;
+
+    background: #260606;
+
+    border: 1px solid #66201b;
+}
+
+#healthFill {
+
+    width: 100%;
+
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #7e0c0c,
+            #db3b24
+        );
+
+    transition: width .15s;
+}
+
+#healthText {
+
+    margin-top: 4px;
+
+    color: #aaa;
+
+    font: 11px Arial;
+}
+
+#roundText {
+
+    margin-top: 7px;
+
+    color: #c09a5d;
+
+    font: bold 12px Arial;
+}
+
+#playersText {
+
+    margin-top: 4px;
+
+    color: #777;
+
+    font: 11px Arial;
+}
+
+
+/* =========================================================
+PLACAR
+========================================================= */
+
+#score {
+
+    position: fixed;
+
+    z-index: 25;
+
+    top: 18px;
+
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+
+    color: white;
+
+    font: bold 14px Arial;
+
+    letter-spacing: 3px;
+
+    text-shadow:
+        0 2px 8px #000;
+}
+
+#teamA {
+    color: #5b9cff;
+}
+
+#teamB {
+    color: #ff5c5c;
+}
+
+
+/* =========================================================
+CROSSHAIR
+========================================================= */
+
+#crosshair {
+
+    position: fixed;
+
+    z-index: 30;
+
+    left: 50%;
+
+    top: 50%;
+
+    width: 5px;
+
+    height: 5px;
+
+    transform:
+        translate(-50%, -50%);
+
+    border-radius: 50%;
+
+    background: white;
+
+    box-shadow:
+        0 0 8px white;
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+ABILITY
+========================================================= */
+
+#ability {
+
+    position: fixed;
+
+    z-index: 30;
+
+    bottom: 25px;
+
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+
+    color: #aaa;
+
+    font: 11px Arial;
+
+    letter-spacing: 2px;
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+MENSAGEM
+========================================================= */
+
+#message {
+
+    position: fixed;
+
+    z-index: 50;
+
+    top: 25%;
+
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+
+    color: #d7b36d;
+
+    font-size: 24px;
+
+    letter-spacing: 3px;
+
+    text-shadow:
+        0 0 15px black;
+
+    opacity: 0;
+
+    transition: opacity .25s;
+
+    pointer-events: none;
+
+    text-align: center;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+PAUSA
+========================================================= */
+
+#pauseScreen {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 80;
+
+    display: none;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-direction: column;
+
+    background:
+        rgba(0,0,0,.58);
+
+    color: white;
+
+    pointer-events: none;
+}
+
+#pauseScreen h1 {
+
+    color: #c09a5d;
+
+    font-size: 30px;
+
+    letter-spacing: 5px;
+
+    margin-bottom: 10px;
+}
+
+#pauseScreen p {
+
+    color: #aaa;
+
+    font: 13px Arial;
+
+    letter-spacing: 2px;
+}
+
+
+/* =========================================================
+CONEXÃO
+========================================================= */
+
+#connection {
+
+    position: fixed;
+
+    right: 20px;
+
+    top: 20px;
+
+    z-index: 30;
+
+    color: #6f9;
+
+    font: 11px Arial;
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+RESPAWN
+========================================================= */
+
+#deadScreen {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 40;
+
+    display: none;
+
+    align-items: center;
+
+    justify-content: center;
+
+    color: #d33;
+
+    font-size: 28px;
+
+    letter-spacing: 5px;
+
+    text-shadow:
+        0 0 20px #000;
+
+    pointer-events: none;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+MENU
+========================================================= -->
+
+<div id="startScreen">
+
+    <div id="title">
+        DARK DUNGEON
+    </div>
+
+    <div id="subtitle">
+        PLAYER VS PLAYER
+    </div>
+
+    <div id="classTitle">
+        ESCOLHA SEU CAMPEÃO
+    </div>
+
+    <div id="classes">
+
+        <div
+            class="classCard selected"
+            data-class="knight">
+
+            <div class="classIcon">
+                ⚔️
+            </div>
+
+            <h2>CAVALEIRO</h2>
+
+            <p>
+                Guerreiro equilibrado.
+                Forte no combate corpo a corpo.
+            </p>
+
+        </div>
+
+
+        <div
+            class="classCard"
+            data-class="mage">
+
+            <div class="classIcon">
+                🔮
+            </div>
+
+            <h2>MAGO</h2>
+
+            <p>
+                Ataca jogadores à distância
+                usando projéteis mágicos.
+            </p>
+
+        </div>
+
+
+        <div
+            class="classCard"
+            data-class="spartan">
+
+            <div class="classIcon">
+                🛡️
+            </div>
+
+            <h2>ESPARTANO</h2>
+
+            <p>
+                Muito resistente e causa
+                muito dano corpo a corpo.
+            </p>
+
+        </div>
+
+
+        <div
+            class="classCard"
+            data-class="priest">
+
+            <div class="classIcon">
+                ✚
+            </div>
+
+            <h2>SACERDOTE</h2>
+
+            <p>
+                Guerreiro sagrado capaz
+                de recuperar sua própria vida.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <button id="startButton">
+        ENTRAR NA ARENA
+    </button>
+
+</div>
+
+
+<!-- =========================================================
+HUD
+========================================================= -->
+
+<div id="hud">
+
+    <div id="className">
+        CAVALEIRO
+    </div>
+
+    <div id="teamName">
+        AGUARDANDO TIME...
+    </div>
+
+    <div id="healthBar">
+        <div id="healthFill"></div>
+    </div>
+
+    <div id="healthText">
+        120 / 120
+    </div>
+
+    <div id="roundText">
+        RODADA 1
+    </div>
+
+    <div id="playersText">
+        Jogadores: 0
+    </div>
+
+</div>
+
+
+<div id="score">
+
+    <span id="teamA">
+        AZUL 0
+    </span>
+
+    &nbsp; — &nbsp;
+
+    <span id="teamB">
+        VERMELHO 0
+    </span>
+
+</div>
+
+
+<div id="connection">
+    CONECTANDO...
+</div>
+
+
+<div id="crosshair"></div>
+
+<div id="ability"></div>
+
+<div id="message"></div>
+
+<div id="deadScreen">
+    VOCÊ FOI ELIMINADO
+</div>
+
+
+<div id="pauseScreen">
+
+    <h1>
+        JOGO PAUSADO
+    </h1>
+
+    <p>
+        CLIQUE PARA VOLTAR
+    </p>
+
+</div>
+
+
+<!-- =========================================================
+GAME
+========================================================= -->
+
+<script type="module">
+
+import * as THREE from "three";
+
+import {
+    PointerLockControls
+}
+from "three/addons/controls/PointerLockControls.js";
+
+
+/* ============================================================
+   FIREBASE
+============================================================ */
+
+import {
+    initializeApp
+}
+from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+import {
+    getDatabase,
+    ref,
+    set,
+    update,
+    onValue,
+    onDisconnect,
+    remove
+}
+from
+"https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+
+const firebaseConfig = {
+
+    apiKey:
+        "AIzaSyDkOXi1MYbb9rp5Zo7HNfQYnhJBMPp8bs",
+
+    authDomain:
+        "testdogithub.firebaseapp.com",
+
+    databaseURL:
+        "https://testdogithub-default-rtdb.firebaseio.com",
+
+    projectId:
+        "testdogithub",
+
+    storageBucket:
+        "testdogithub.firebasestorage.app",
+
+    messagingSenderId:
+        "1045850387937",
+
+    appId:
+        "1:1045850387937:web:276466d0630d8e3a7f8ea0"
+
+};
+
+
+const firebaseApp =
+    initializeApp(
+        firebaseConfig
+    );
+
+
+const database =
+    getDatabase(
+        firebaseApp
+    );
+
+
+/* ============================================================
+   ID
+============================================================ */
+
+const playerId =
+    crypto.randomUUID();
+
+
+/* ============================================================
+   ARENA
+============================================================ */
+
+const ARENA_WIDTH = 50;
+
+const ARENA_DEPTH = 34;
+
+const ARENA_HEIGHT = 8;
+
+const WALL = .6;
+
+const PLAYER_HEIGHT = 1.7;
+
+const PLAYER_SPEED = 5;
+
+
+/* ============================================================
+   FÍSICA
+============================================================ */
+
+const PLAYER_RADIUS = .55;
+
+const PLAYER_COLLISION_HEIGHT = 2.1;
+
+const PROJECTILE_SPEED = 24;
+
+const PROJECTILE_MAX_LIFE = 3.0;
+
+const PROJECTILE_RADIUS = .22;
+
+
+/* ============================================================
+   CLASSES
+============================================================ */
+
+const CLASS_DATA = {
+
+    knight: {
+
+        name:
+            "CAVALEIRO",
+
+        health:
+            120,
+
+        damage:
+            35,
+
+        range:
+            3.2,
+
+        cooldown:
+            .45,
+
+        ability:
+            "CLIQUE ESQUERDO • ATAQUE DE ESPADA"
+
+    },
+
+
+    mage: {
+
+        name:
+            "MAGO",
+
+        health:
+            75,
+
+        damage:
+            30,
+
+        range:
+            40,
+
+        cooldown:
+            .3,
+
+        ability:
+            "CLIQUE ESQUERDO • PROJÉTIL ARCANO"
+
+    },
+
+
+    spartan: {
+
+        name:
+            "ESPARTANO",
+
+        health:
+            160,
+
+        damage:
+            50,
+
+        range:
+            3.8,
+
+        cooldown:
+            .8,
+
+        ability:
+            "CLIQUE ESQUERDO • ATAQUE DE LANÇA"
+
+    },
+
+
+    priest: {
+
+        name:
+            "SACERDOTE",
+
+        health:
+            100,
+
+        damage:
+            15,
+
+        range:
+            3,
+
+        cooldown:
+            .6,
+
+        ability:
+            "CLIQUE ESQUERDO • CURA SAGRADA"
+
+    }
+
+};
+
+
+/* ============================================================
+   ESTADO
+============================================================ */
+
+let selectedClass =
+    "knight";
+
+let playerHealth =
+    CLASS_DATA.knight.health;
+
+let playerMaxHealth =
+    CLASS_DATA.knight.health;
+
+let gameStarted =
+    false;
+
+let playerDead =
+    false;
+
+let attackCooldown =
+    0;
+
+let networkTimer =
+    0;
+
+let roundNumber =
+    1;
+
+let roundEnding =
+    false;
+
+let roundResetTimer =
+    null;
+
+let myTeam =
+    null;
+
+let teamAPlayers =
+    0;
+
+let teamBPlayers =
+    0;
+
+
+/*
+ * Evita que a rodada seja finalizada
+ * várias vezes ao mesmo tempo.
+ */
+
+let roundCheckLock =
+    false;
+
+
+/*
+ * Controle de sincronização da rodada.
+ */
+
+let roundUpdateInProgress =
+    false;
+
+
+const keys = {};
+
+const projectiles = {};
+
+const onlinePlayers = {};
+
+
+/* ============================================================
+   THREE
+============================================================ */
+
+const scene =
+    new THREE.Scene();
+
+
+scene.background =
+    new THREE.Color(
+        0x090806
+    );
+
+
+/*
+ * Menos neblina para não deixar
+ * a arena excessivamente preta.
+ */
+
+scene.fog =
+    new THREE.FogExp2(
+        0x090806,
+        .018
+    );
+
+
+/* ============================================================
+   CÂMERA
+============================================================ */
+
+const camera =
+    new THREE.PerspectiveCamera(
+
+        75,
+
+        innerWidth /
+        innerHeight,
+
+        .1,
+
+        200
+
+    );
+
+
+camera.position.set(
+
+    -18,
+
+    PLAYER_HEIGHT,
+
+    0
+
+);
+
+
+scene.add(
+    camera
+);
+
+
+/* ============================================================
+   RENDERER
+============================================================ */
+
+const renderer =
+    new THREE.WebGLRenderer({
+
+        antialias:
+            true
+
+    });
+
+
+renderer.setSize(
+
+    innerWidth,
+
+    innerHeight
+
+);
+
+
+renderer.setPixelRatio(
+
+    Math.min(
+        devicePixelRatio,
+        2
+    )
+
+);
+
+
+renderer.shadowMap.enabled =
+    true;
+
+
+renderer.shadowMap.type =
+    THREE.PCFSoftShadowMap;
+
+
+renderer.outputColorSpace =
+    THREE.SRGBColorSpace;
+
+
+/*
+ * Ajuda a manter a imagem mais clara
+ * sem depender somente das luzes.
+ */
+
+renderer.toneMapping =
+    THREE.ACESFilmicToneMapping;
+
+renderer.toneMappingExposure =
+    1.25;
+
+
+document.body.appendChild(
+    renderer.domElement
+);
+
+
+/* ============================================================
+   LUZ GLOBAL
+============================================================ */
+
+/*
+ * Luz ambiente principal.
+ *
+ * O código anterior tinha .35,
+ * que era muito baixo para os materiais
+ * escuros usados na arena.
+ */
+
+const ambient =
+    new THREE.HemisphereLight(
+
+        0x8b7354,
+        0x18120d,
+        1.15
+
+    );
+
+
+scene.add(
+    ambient
+);
+
+
+/*
+ * Luz direcional fraca para revelar
+ * paredes e personagens.
+ */
+
+const moonLight =
+    new THREE.DirectionalLight(
+
+        0xc8b99b,
+        .65
+
+    );
+
+
+moonLight.position.set(
+    0,
+    8,
+    4
+);
+
+
+moonLight.castShadow =
+    true;
+
+
+moonLight.shadow.mapSize.width =
+    1024;
+
+moonLight.shadow.mapSize.height =
+    1024;
+
+
+scene.add(
+    moonLight
+);
+
+
+/* ============================================================
+   CONTROLES
+============================================================ */
+
+const controls =
+    new PointerLockControls(
+
+        camera,
+
+        document.body
+
+    );
+
+
+/* ============================================================
+   POINTER LOCK
+============================================================ */
+
+controls.addEventListener(
+    "lock",
+    () => {
+
+        document
+        .getElementById(
+            "pauseScreen"
+        )
+        .style.display =
+            "none";
+
+    }
+);
+
+
+controls.addEventListener(
+    "unlock",
+    () => {
+
+        if (
+            gameStarted &&
+            !roundEnding &&
+            !playerDead
+        ) {
+
+            document
+            .getElementById(
+                "pauseScreen"
+            )
+            .style.display =
+                "flex";
+
+        }
+
+    }
+);
+
+
+/*
+ * Se o jogador clicar enquanto
+ * a câmera estiver desbloqueada,
+ * captura novamente.
+ */
+
+document.addEventListener(
+    "click",
+    () => {
+
+        if (
+            !gameStarted
+        )
+            return;
+
+        if (
+            roundEnding ||
+            playerDead
+        )
+            return;
+
+        if (
+            !controls.isLocked
+        ) {
+
+            controls.lock();
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   MENU DE CLASSES
+============================================================ */
+
+document
+.querySelectorAll(
+    ".classCard"
+)
+.forEach(
+    card => {
+
+        card.addEventListener(
+            "click",
+            () => {
+
+                document
+                .querySelectorAll(
+                    ".classCard"
+                )
+                .forEach(
+                    c => {
+
+                        c.classList
+                        .remove(
+                            "selected"
+                        );
+
+                    }
+                );
+
+
+                card.classList.add(
+                    "selected"
+                );
+
+
+                selectedClass =
+                    card.dataset.class;
+
+            }
+        );
+
+    }
+);
+
+
+/* ============================================================
+   START
+============================================================ */
+
+document
+.getElementById(
+    "startButton"
+)
+.addEventListener(
+    "click",
+    event => {
+
+        event.stopPropagation();
+
+        startGame();
+
+    }
+);
+
+
+function startGame() {
+
+    if (
+        gameStarted
+    )
+        return;
+
+
+    gameStarted =
+        true;
+
+
+    const data =
+        CLASS_DATA[
+            selectedClass
+        ];
+
+
+    playerMaxHealth =
+        data.health;
+
+
+    playerHealth =
+        data.health;
+
+
+    updateClassHUD();
+
+    updateHealth();
+
+
+    document
+    .getElementById(
+        "startScreen"
+    )
+    .style.display =
+        "none";
+
+
+    createArena();
+
+
+    /*
+     * Começamos do lado azul.
+     */
+
+    setPlayerSpawn(
+        "A",
+        false
+    );
+
+
+    createOnlinePlayer();
+
+    listenToPlayers();
+
+    /*
+     * O listener próprio já foi criado
+     * abaixo antes do start.
+     */
+
+    /*
+     * Aqui é gesto real do usuário,
+     * então Pointer Lock funciona.
+     */
+
+    controls.lock();
+
+}
+
+
+/* ============================================================
+   HUD
+============================================================ */
+
+function updateClassHUD() {
+
+    const data =
+        CLASS_DATA[
+            selectedClass
+        ];
+
+
+    document
+    .getElementById(
+        "className"
+    )
+    .textContent =
+        data.name;
+
+
+    document
+    .getElementById(
+        "ability"
+    )
+    .textContent =
+        data.ability;
+
+}
+
+
+function updateHealth() {
+
+    const percent =
+        (
+            playerHealth /
+            playerMaxHealth
+        ) * 100;
+
+
+    document
+    .getElementById(
+        "healthFill"
+    )
+    .style.width =
+        `${Math.max(
+            0,
+            Math.min(
+                100,
+                percent
+            )
+        )}%`;
+
+
+    document
+    .getElementById(
+        "healthText"
+    )
+    .textContent =
+        `${Math.ceil(
+            playerHealth
+        )} / ${playerMaxHealth}`;
+
+}
+
+
+/* ============================================================
+   TECLADO
+============================================================ */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        keys[event.code] =
+            true;
+
+    }
+);
+
+
+document.addEventListener(
+    "keyup",
+    event => {
+
+        keys[event.code] =
+            false;
+
+    }
+);
+
+
+/* ============================================================
+   MATERIAIS
+============================================================ */
+
+const floorMaterial =
+    new THREE.MeshStandardMaterial({
+
+        color:
+            0x211c16,
+
+        roughness:
+            1
+
+    });
+
+
+const wallMaterial =
+    new THREE.MeshStandardMaterial({
+
+        color:
+            0x302820,
+
+        roughness:
+            1
+
+    });
+
+
+/* ============================================================
+   ARENA
+============================================================ */
+
+function createArena() {
+
+    /*
+     * Evita criar a arena duas vezes.
+     */
+
+    if (
+        scene.getObjectByName(
+            "ARENA_ROOT"
+        )
+    )
+        return;
+
+
+    const arenaRoot =
+        new THREE.Group();
+
+
+    arenaRoot.name =
+        "ARENA_ROOT";
+
+
+    scene.add(
+        arenaRoot
+    );
+
+
+    /*
+     * CHÃO
+     */
+
+    const floor =
+        new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+
+                ARENA_WIDTH,
+                .5,
+                ARENA_DEPTH
+
+            ),
+
+            floorMaterial
+
+        );
+
+
+    floor.position.y =
+        -.25;
+
+
+    floor.receiveShadow =
+        true;
+
+
+    arenaRoot.add(
+        floor
+    );
+
+
+    /*
+     * TETO
+     */
+
+    const ceiling =
+        new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+
+                ARENA_WIDTH,
+                .5,
+                ARENA_DEPTH
+
+            ),
+
+            new THREE.MeshStandardMaterial({
+
+                color:
+                    0x15110d,
+
+                roughness:
+                    1
+
+            })
+
+        );
+
+
+    ceiling.position.y =
+        ARENA_HEIGHT;
+
+
+    arenaRoot.add(
+        ceiling
+    );
+
+
+    /*
+     * PAREDES
+     */
+
+    createWall(
+        arenaRoot,
+        0,
+        ARENA_HEIGHT / 2,
+        -ARENA_DEPTH / 2,
+        ARENA_WIDTH,
+        ARENA_HEIGHT,
+        WALL
+    );
+
+
+    createWall(
+        arenaRoot,
+        0,
+        ARENA_HEIGHT / 2,
+        ARENA_DEPTH / 2,
+        ARENA_WIDTH,
+        ARENA_HEIGHT,
+        WALL
+    );
+
+
+    createWall(
+        arenaRoot,
+        -ARENA_WIDTH / 2,
+        ARENA_HEIGHT / 2,
+        0,
+        WALL,
+        ARENA_HEIGHT,
+        ARENA_DEPTH
+    );
+
+
+    createWall(
+        arenaRoot,
+        ARENA_WIDTH / 2,
+        ARENA_HEIGHT / 2,
+        0,
+        WALL,
+        ARENA_HEIGHT,
+        ARENA_DEPTH
+    );
+
+
+    /*
+     * PILARES
+     */
+
+    const positions = [
+
+        [-20, -12],
+        [-20, 12],
+        [20, -12],
+        [20, 12]
+
+    ];
+
+
+    for (
+        const [x, z]
+        of positions
+    ) {
+
+        createPillar(
+            arenaRoot,
+            x,
+            z
+        );
+
+    }
+
+
+    /*
+     * TOCHAS
+     */
+
+    createTorch(
+        arenaRoot,
+        -21,
+        -12
+    );
+
+    createTorch(
+        arenaRoot,
+        21,
+        12
+    );
+
+    createTorch(
+        arenaRoot,
+        -21,
+        12
+    );
+
+    createTorch(
+        arenaRoot,
+        21,
+        -12
+    );
+
+
+    /*
+     * Luzes extras no centro.
+     *
+     * Isso clareia a jogabilidade sem
+     * acabar com o clima da dungeon.
+     */
+
+    createAreaLight(
+        arenaRoot,
+        0,
+        4,
+        0,
+        0xffc47a,
+        2.0,
+        18
+    );
+
+}
+
+
+/* ============================================================
+   PAREDE
+============================================================ */
+
+function createWall(
+    parent,
+    x,
+    y,
+    z,
+    width,
+    height,
+    depth
+) {
+
+    const wall =
+        new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+
+                width,
+                height,
+                depth
+
+            ),
+
+            wallMaterial
+
+        );
+
+
+    wall.position.set(
+        x,
+        y,
+        z
+    );
+
+
+    wall.receiveShadow =
+        true;
+
+
+    wall.castShadow =
+        true;
+
+
+    parent.add(
+        wall
+    );
+
+}
+
+
+/* ============================================================
+   PILAR
+============================================================ */
+
+function createPillar(
+    parent,
+    x,
+    z
+) {
+
+    const pillar =
+        new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+
+                .8,
+                1,
+                5,
+                8
+
+            ),
+
+            new THREE.MeshStandardMaterial({
+
+                color:
+                    0x3a3028,
+
+                roughness:
+                    1
+
+            })
+
+        );
+
+
+    pillar.position.set(
+
+        x,
+        2.5,
+        z
+
+    );
+
+
+    pillar.castShadow =
+        true;
+
+
+    pillar.receiveShadow =
+        true;
+
+
+    parent.add(
+        pillar
+    );
+
+}
+
+
+/* ============================================================
+   TOCHA
+============================================================ */
+
+function createTorch(
+    parent,
+    x,
+    z
+) {
+
+    const light =
+        new THREE.PointLight(
+
+            0xff6b20,
+            28,
+            14,
+            2
+
+        );
+
+
+    light.position.set(
+
+        x,
+        3,
+        z
+
+    );
+
+
+    parent.add(
+        light
+    );
+
+
+    const flame =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+
+                .25,
+                8,
+                8
+
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                color:
+                    0xff6b20
+
+            })
+
+        );
+
+
+    flame.position.set(
+
+        x,
+        3,
+        z
+
+    );
+
+
+    parent.add(
+        flame
+    );
+
+
+    /*
+     * Pequena iluminação vertical
+     * abaixo da chama.
+     */
+
+    const glow =
+        new THREE.PointLight(
+
+            0xff9a3d,
+            7,
+            5
+
+        );
+
+
+    glow.position.set(
+        x,
+        1.5,
+        z
+    );
+
+
+    parent.add(
+        glow
+    );
+
+}
+
+
+/* ============================================================
+   AREA LIGHT
+============================================================ */
+
+function createAreaLight(
+    parent,
+    x,
+    y,
+    z,
+    color,
+    intensity,
+    distance
+) {
+
+    const light =
+        new THREE.PointLight(
+
+            color,
+            intensity,
+            distance,
+            2
+
+        );
+
+
+    light.position.set(
+        x,
+        y,
+        z
+    );
+
+
+    parent.add(
+        light
+    );
+
+}
+
+
+/* ============================================================
+   SPAWN
+============================================================ */
+
+function setPlayerSpawn(
+    team,
+    resetYaw = true
+) {
+
+    const x =
+        team === "A"
+            ? -18
+            : 18;
+
+
+    camera.position.set(
+
+        x,
+        PLAYER_HEIGHT,
+        0
+
+    );
+
+
+    /*
+     * Azul olha para +X.
+     * Vermelho olha para -X.
+     */
+
+    if (
+        resetYaw
+    ) {
+
+        const yaw =
+            team === "A"
+                ? -Math.PI / 2
+                : Math.PI / 2;
+
+
+        camera.rotation.set(
+            0,
+            yaw,
+            0,
+            "YXZ"
+        );
+
+    }
+
+
+    camera.updateMatrixWorld(
+        true
+    );
+
+}
+
+
+/* ============================================================
+   MOVIMENTO
+============================================================ */
+
+function updatePlayer(
+    delta
+) {
+
+    if (
+        !controls.isLocked
+    )
+        return;
+
+
+    if (
+        roundEnding ||
+        playerDead
+    )
+        return;
+
+
+    let forward =
+        0;
+
+    let right =
+        0;
+
+
+    if (
+        keys["KeyW"]
+    )
+        forward++;
+
+
+    if (
+        keys["KeyS"]
+    )
+        forward--;
+
+
+    if (
+        keys["KeyD"]
+    )
+        right++;
+
+
+    if (
+        keys["KeyA"]
+    )
+        right--;
+
+
+    if (
+        forward !== 0 ||
+        right !== 0
+    ) {
+
+        const length =
+            Math.sqrt(
+
+                forward *
+                forward +
+
+                right *
+                right
+
+            );
+
+
+        forward /=
+            length;
+
+
+        right /=
+            length;
+
+
+        const speed =
+            PLAYER_SPEED *
+            delta;
+
+
+        controls.moveForward(
+
+            forward *
+            speed
+
+        );
+
+
+        controls.moveRight(
+
+            right *
+            speed
+
+        );
+
+    }
+
+
+    /*
+     * Mantém o jogador dentro da arena.
+     */
+
+    const limitX =
+        ARENA_WIDTH / 2 - 1;
+
+
+    const limitZ =
+        ARENA_DEPTH / 2 - 1;
+
+
+    camera.position.x =
+        THREE.MathUtils.clamp(
+
+            camera.position.x,
+
+            -limitX,
+
+            limitX
+
+        );
+
+
+    camera.position.z =
+        THREE.MathUtils.clamp(
+
+            camera.position.z,
+
+            -limitZ,
+
+            limitZ
+
+        );
+
+
+    camera.position.y =
+        PLAYER_HEIGHT;
+
+}
+
+
+/* ============================================================
+   ATAQUE
+============================================================ */
+
+document.addEventListener(
+    "mousedown",
+    event => {
+
+        if (
+            !controls.isLocked
+        )
+            return;
+
+
+        if (
+            roundEnding ||
+            playerDead
+        )
+            return;
+
+
+        if (
+            event.button !== 0
+        )
+            return;
+
+
+        if (
+            attackCooldown > 0
+        )
+            return;
+
+
+        const data =
+            CLASS_DATA[
+                selectedClass
+            ];
+
+
+        attackCooldown =
+            data.cooldown;
+
+
+        attack();
+
+    }
+);
+
+
+function attack() {
+
+    if (
+        selectedClass ===
+        "mage"
+    ) {
+
+        fireMagic();
+
+        return;
+
+    }
+
+
+    if (
+        selectedClass ===
+        "priest"
+    ) {
+
+        healPlayer();
+
+        return;
+
+    }
+
+
+    const data =
+        CLASS_DATA[
+            selectedClass
+        ];
+
+
+    const forward =
+        new THREE.Vector3();
+
+
+    camera.getWorldDirection(
+        forward
+    );
+
+
+    let closest =
+        null;
+
+
+    let closestDistance =
+        data.range;
+
+
+    for (
+        const id in onlinePlayers
+    ) {
+
+        const target =
+            onlinePlayers[id];
+
+
+        if (
+            !target.data
+        )
+            continue;
+
+
+        if (
+            target.data.team ===
+            myTeam
+        )
+            continue;
+
+
+        if (
+            target.data.dead
+        )
+            continue;
+
+
+        const distance =
+            horizontalDistance(
+                target.mesh.position,
+                camera.position
+            );
+
+
+        if (
+            distance >=
+            closestDistance
+        )
+            continue;
+
+
+        const toEnemy =
+            new THREE.Vector3()
+            .subVectors(
+
+                target.mesh.position,
+
+                camera.position
+
+            );
+
+
+        toEnemy.y =
+            0;
+
+
+        if (
+            toEnemy.lengthSq() === 0
+        )
+            continue;
+
+
+        toEnemy.normalize();
+
+
+        const horizontalForward =
+            forward.clone();
+
+
+        horizontalForward.y =
+            0;
+
+
+        if (
+            horizontalForward.lengthSq() === 0
+        )
+            continue;
+
+
+        horizontalForward.normalize();
+
+
+        const dot =
+            horizontalForward.dot(
+                toEnemy
+            );
+
+
+        if (
+            dot > .55
+        ) {
+
+            closest =
+                target;
+
+            closestDistance =
+                distance;
+
+        }
+
+    }
+
+
+    if (
+        closest
+    ) {
+
+        sendDamage(
+
+            closest.id,
+
+            data.damage
+
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   MAGO
+============================================================ */
+
+function fireMagic() {
+
+    const direction =
+        new THREE.Vector3();
+
+
+    camera.getWorldDirection(
+        direction
+    );
+
+
+    direction.normalize();
+
+
+    /*
+     * O projétil nasce um pouco à frente
+     * da câmera, evitando acertar o próprio
+     * jogador.
+     */
+
+    const startPosition =
+        camera.position.clone()
+        .add(
+            direction.clone()
+            .multiplyScalar(
+                .7
+            )
+        );
+
+
+    const projectile =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+
+                .16,
+                12,
+                12
+
+            ),
+
+            new THREE.MeshStandardMaterial({
+
+                color:
+                    0x8b42ff,
+
+                emissive:
+                    0x5200d8,
+
+                emissiveIntensity:
+                    3
+
+            })
+
+        );
+
+
+    projectile.position.copy(
+        startPosition
+    );
+
+
+    projectile.castShadow =
+        true;
+
+
+    projectile.userData.velocity =
+        direction.clone()
+        .multiplyScalar(
+            PROJECTILE_SPEED
+        );
+
+
+    projectile.userData.life =
+        PROJECTILE_MAX_LIFE;
+
+
+    projectile.userData.owner =
+        playerId;
+
+
+    projectile.userData.damage =
+        CLASS_DATA.mage.damage;
+
+
+    projectile.userData.distance =
+        0;
+
+
+    scene.add(
+        projectile
+    );
+
+
+    projectiles[
+        crypto.randomUUID()
+    ] = projectile;
+
+}
+
+
+/* ============================================================
+   PROJÉTEIS
+============================================================ */
+
+function updateProjectiles(
+    delta
+) {
+
+    const ids =
+        Object.keys(
+            projectiles
+        );
+
+
+    for (
+        const projectileId
+        of ids
+    ) {
+
+        const projectile =
+            projectiles[
+                projectileId
+            ];
+
+
+        if (
+            !projectile
+        )
+            continue;
+
+
+        const velocity =
+            projectile.userData.velocity;
+
+
+        const movement =
+            velocity.clone()
+            .multiplyScalar(
+                delta
+            );
+
+
+        const oldPosition =
+            projectile.position.clone();
+
+
+        projectile.position.add(
+            movement
+        );
+
+
+        projectile.userData.life -=
+            delta;
+
+
+        projectile.userData.distance +=
+            movement.length();
+
+
+        let hit =
+            false;
+
+
+        /*
+         * Colisão com jogadores.
+         *
+         * Antes o código comparava
+         * projectile.y com mesh.position.y=0,
+         * embora o projétil estivesse em Y=1.7.
+         *
+         * Agora usamos uma cápsula simplificada:
+         * centro horizontal + faixa vertical.
+         */
+
+        for (
+            const id in onlinePlayers
+        ) {
+
+            if (
+                id === playerId
+            )
+                continue;
+
+
+            const target =
+                onlinePlayers[id];
+
+
+            if (
+                !target ||
+                !target.data
+            )
+                continue;
+
+
+            if (
+                target.data.team ===
+                myTeam
+            )
+                continue;
+
+
+            if (
+                target.data.dead
+            )
+                continue;
+
+
+            const targetPosition =
+                target.mesh.position;
+
+
+            const horizontal =
+                Math.sqrt(
+
+                    Math.pow(
+                        projectile.position.x -
+                        targetPosition.x,
+                        2
+                    ) +
+
+                    Math.pow(
+                        projectile.position.z -
+                        targetPosition.z,
+                        2
+                    )
+
+                );
+
+
+            const projectileBottom =
+                projectile.position.y -
+                PROJECTILE_RADIUS;
+
+
+            const projectileTop =
+                projectile.position.y +
+                PROJECTILE_RADIUS;
+
+
+            const targetBottom =
+                0;
+
+
+            const targetTop =
+                PLAYER_COLLISION_HEIGHT;
+
+
+            const verticalOverlap =
+                projectileTop >= targetBottom &&
+                projectileBottom <= targetTop;
+
+
+            if (
+                horizontal <=
+                PLAYER_RADIUS +
+                PROJECTILE_RADIUS &&
+                verticalOverlap
+            ) {
+
+                sendDamage(
+
+                    id,
+
+                    projectile.userData.damage
+
+                );
+
+
+                hit =
+                    true;
+
+
+                break;
+
+            }
+
+
+            /*
+             * Também verificamos o segmento
+             * anterior → atual para evitar que
+             * projéteis rápidos atravessem players.
+             */
+
+            if (
+                !hit &&
+                segmentHitsPlayer(
+                    oldPosition,
+                    projectile.position,
+                    targetPosition
+                )
+            ) {
+
+                sendDamage(
+
+                    id,
+
+                    projectile.userData.damage
+
+                );
+
+
+                hit =
+                    true;
+
+
+                break;
+
+            }
+
+        }
+
+
+        /*
+         * Colisão com limites da arena.
+         */
+
+        if (
+            !hit &&
+            projectileInsideWall(
+                projectile.position
+            )
+        ) {
+
+            hit =
+                true;
+
+        }
+
+
+        if (
+            projectile.userData.life <= 0 ||
+            projectile.userData.distance >= 60 ||
+            hit
+        ) {
+
+            scene.remove(
+                projectile
+            );
+
+
+            delete
+                projectiles[
+                    projectileId
+                ];
+
+        }
+
+    }
+
+}
+
+
+/* ============================================================
+   COLISÃO DO PROJÉTIL COM PLAYER
+============================================================ */
+
+function segmentHitsPlayer(
+    start,
+    end,
+    target
+) {
+
+    const segment =
+        new THREE.Vector3()
+        .subVectors(
+            end,
+            start
+        );
+
+
+    const segmentLengthSq =
+        segment.lengthSq();
+
+
+    if (
+        segmentLengthSq === 0
+    )
+        return false;
+
+
+    const point =
+        new THREE.Vector3()
+        .subVectors(
+            target,
+            start
+        );
+
+
+    const t =
+        THREE.MathUtils.clamp(
+
+            point.dot(segment) /
+            segmentLengthSq,
+
+            0,
+            1
+
+        );
+
+
+    const closest =
+        start.clone()
+        .add(
+            segment
+            .clone()
+            .multiplyScalar(
+                t
+            )
+        );
+
+
+    const dx =
+        closest.x -
+        target.x;
+
+
+    const dz =
+        closest.z -
+        target.z;
+
+
+    const horizontal =
+        Math.sqrt(
+            dx * dx +
+            dz * dz
+        );
+
+
+    const vertical =
+        closest.y >= 0 &&
+        closest.y <=
+            PLAYER_COLLISION_HEIGHT;
+
+
+    return (
+        horizontal <=
+        PLAYER_RADIUS +
+        PROJECTILE_RADIUS &&
+        vertical
+    );
+
+}
+
+
+/* ============================================================
+   LIMITE DA ARENA
+============================================================ */
+
+function projectileInsideWall(
+    position
+) {
+
+    const xLimit =
+        ARENA_WIDTH / 2 -
+        WALL;
+
+    const zLimit =
+        ARENA_DEPTH / 2 -
+        WALL;
+
+
+    return (
+
+        position.x <= -xLimit ||
+        position.x >= xLimit ||
+        position.z <= -zLimit ||
+        position.z >= zLimit
+
+    );
+
+}
+
+
+/* ============================================================
+   DISTÂNCIA HORIZONTAL
+============================================================ */
+
+function horizontalDistance(
+    a,
+    b
+) {
+
+    const dx =
+        a.x -
+        b.x;
+
+
+    const dz =
+        a.z -
+        b.z;
+
+
+    return Math.sqrt(
+        dx * dx +
+        dz * dz
+    );
+
+}
+
+
+/* ============================================================
+   CURA
+============================================================ */
+
+function healPlayer() {
+
+    if (
+        playerDead ||
+        roundEnding
+    )
+        return;
+
+
+    const amount =
+        30;
+
+
+    playerHealth =
+        Math.min(
+
+            playerMaxHealth,
+
+            playerHealth +
+            amount
+
+        );
+
+
+    updateHealth();
+
+
+    showMessage(
+        "+ CURA SAGRADA"
+    );
+
+}
+
+
+/* ============================================================
+   FIREBASE - PLAYER
+============================================================ */
+
+function createOnlinePlayer() {
+
+    const playerRef =
+        ref(
+
+            database,
+
+            `players/${playerId}`
+
+        );
+
+
+    const initialData = {
+
+        class:
+            selectedClass,
+
+        team:
+            null,
+
+        x:
+            camera.position.x,
+
+        y:
+            camera.position.y,
+
+        z:
+            camera.position.z,
+
+        rotation:
+            camera.rotation.y,
+
+        health:
+            playerHealth,
+
+        maxHealth:
+            playerMaxHealth,
+
+        dead:
+            false,
+
+        round:
+            roundNumber,
+
+        online:
+            true
+
+    };
+
+
+    set(
+        playerRef,
+        initialData
+    )
+    .then(
+        () => {
+
+            document
+            .getElementById(
+                "connection"
+            )
+            .textContent =
+                "● ONLINE";
+
+
+            document
+            .getElementById(
+                "connection"
+            )
+            .style.color =
+                "#69b86e";
+
+        }
+    )
+    .catch(
+        error => {
+
+            console.error(
+                error
+            );
+
+
+            document
+            .getElementById(
+                "connection"
+            )
+            .textContent =
+                "ERRO FIREBASE";
+
+
+            document
+            .getElementById(
+                "connection"
+            )
+            .style.color =
+                "#d44";
+
+        }
+    );
+
+
+    onDisconnect(
+        playerRef
+    )
+    .remove();
+
+}
+
+
+/* ============================================================
+   ATUALIZAR PLAYER
+============================================================ */
+
+function updateOnlinePlayer(
+    delta
+) {
+
+    if (
+        !gameStarted
+    )
+        return;
+
+
+    networkTimer +=
+        delta;
+
+
+    if (
+        networkTimer < .06
+    )
+        return;
+
+
+    networkTimer =
+        0;
+
+
+    update(
+
+        ref(
+            database,
+            `players/${playerId}`
+        ),
+
+        {
+
+            x:
+                camera.position.x,
+
+            y:
+                camera.position.y,
+
+            z:
+                camera.position.z,
+
+            rotation:
+                camera.rotation.y,
+
+            health:
+                playerHealth,
+
+            maxHealth:
+                playerMaxHealth,
+
+            class:
+                selectedClass,
+
+            team:
+                myTeam,
+
+            dead:
+                playerDead,
+
+            round:
+                roundNumber,
+
+            online:
+                true
+
+        }
+
+    )
+    .catch(
+        error => {
+
+            console.error(
+                "Firebase:",
+                error
+            );
+
+        }
+    );
+
+}
+
+
+/* ============================================================
+   ESCUTAR PLAYERS
+============================================================ */
+
+function listenToPlayers() {
+
+    const playersRef =
+        ref(
+            database,
+            "players"
+        );
+
+
+    onValue(
+
+        playersRef,
+
+        snapshot => {
+
+            const players =
+                snapshot.val() ||
+                {};
+
+
+            const ids =
+                Object.keys(
+                    players
+                );
+
+
+            document
+            .getElementById(
+                "playersText"
+            )
+            .textContent =
+                `Jogadores: ${ids.length}`;
+
+
+            assignTeams(
+                players
+            );
+
+
+            for (
+                const id in players
+            ) {
+
+                updateOtherPlayer(
+
+                    id,
+
+                    players[id]
+
+                );
+
+            }
+
+
+            for (
+                const id in onlinePlayers
+            ) {
+
+                if (
+                    !players[id]
+                ) {
+
+                    scene.remove(
+
+                        onlinePlayers[id]
+                        .mesh
+
+                    );
+
+
+                    delete
+                        onlinePlayers[id];
+
+                }
+
+            }
+
+
+            updateScore(
+                players
+            );
+
+
+            checkRoundEnd(
+                players
+            );
+
+        }
+
+    );
+
+}
+
+
+/* ============================================================
+   TIMES
+============================================================ */
+
+function assignTeams(
+    players
+) {
+
+    let a =
+        0;
+
+    let b =
+        0;
+
+
+    /*
+     * Primeiro contamos somente
+     * times já definidos.
+     */
+
+    for (
+        const id in players
+    ) {
+
+        if (
+            players[id].team ===
+            "A"
+        )
+            a++;
+
+
+        if (
+            players[id].team ===
+            "B"
+        )
+            b++;
+
+    }
+
+
+    /*
+     * Próprio jogador.
+     */
+
+    const me =
+        players[playerId];
+
+
+    if (
+        me
+    ) {
+
+        if (
+            me.team
+        ) {
+
+            myTeam =
+                me.team;
+
+        }
+        else {
+
+            const team =
+                a <= b
+                    ? "A"
+                    : "B";
+
+
+            myTeam =
+                team;
+
+
+            if (
+                team === "A"
+            )
+                a++;
+            else
+                b++;
+
+
+            update(
+
+                ref(
+
+                    database,
+
+                    `players/${playerId}`
+
+                ),
+
+                {
+
+                    team
+
+                }
+
+            );
+
+        }
+
+    }
+
+
+    /*
+     * Jogadores sem time.
+     */
+
+    for (
+        const id in players
+    ) {
+
+        if (
+            id === playerId
+        )
+            continue;
+
+
+        if (
+            players[id].team
+        )
+            continue;
+
+
+        const team =
+            a <= b
+                ? "A"
+                : "B";
+
+
+        if (
+            team === "A"
+        )
+            a++;
+        else
+            b++;
+
+
+        update(
+
+            ref(
+
+                database,
+
+                `players/${id}`
+
+            ),
+
+            {
+
+                team
+
+            }
+
+        );
+
+    }
+
+
+    teamAPlayers =
+        a;
+
+
+    teamBPlayers =
+        b;
+
+
+    updateTeamHUD();
+
+}
+
+
+/* ============================================================
+   HUD TIME
+============================================================ */
+
+function updateTeamHUD() {
+
+    const element =
+        document.getElementById(
+            "teamName"
+        );
+
+
+    if (
+        myTeam === "A"
+    ) {
+
+        element.textContent =
+            "TIME AZUL";
+
+
+        element.style.color =
+            "#5b9cff";
+
+    }
+    else if (
+        myTeam === "B"
+    ) {
+
+        element.textContent =
+            "TIME VERMELHO";
+
+
+        element.style.color =
+            "#ff5c5c";
+
+    }
+    else {
+
+        element.textContent =
+            "AGUARDANDO TIME...";
+
+
+        element.style.color =
+            "#aaa";
+
+    }
+
+}
+
+
+/* ============================================================
+   OUTRO PLAYER
+============================================================ */
+
+function updateOtherPlayer(
+    id,
+    data
+) {
+
+    if (
+        id === playerId
+    )
+        return;
+
+
+    if (
+        !onlinePlayers[id]
+    ) {
+
+        const mesh =
+            createOtherPlayer(
+                data
+            );
+
+
+        scene.add(
+            mesh
+        );
+
+
+        onlinePlayers[id] = {
+
+            id,
+
+            mesh,
+
+            target:
+                new THREE.Vector3(),
+
+            rotation:
+                0,
+
+            data:
+                data,
+
+            class:
+                data.class
+
+        };
+
+    }
+
+
+    const player =
+        onlinePlayers[id];
+
+
+    player.data =
+        data;
+
+
+    player.target.set(
+
+        Number(data.x) || 0,
+
+        0,
+
+        Number(data.z) || 0
+
+    );
+
+
+    player.rotation =
+        Number(
+            data.rotation
+        ) || 0;
+
+
+    /*
+     * Classe mudou.
+     */
+
+    if (
+        player.class !==
+        data.class
+    ) {
+
+        scene.remove(
+            player.mesh
+        );
+
+
+        player.mesh =
+            createOtherPlayer(
+                data
+            );
+
+
+        scene.add(
+            player.mesh
+        );
+
+
+        player.class =
+            data.class;
+
+    }
+
+
+    updateOtherPlayerColor(
+        player.mesh,
+        data.team
+    );
+
+
+    player.mesh.visible =
+        !data.dead;
+
+}
+
+
+/* ============================================================
+   MODELO DO PLAYER
+============================================================ */
+
+function createOtherPlayer(
+    data
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    group.position.y =
+        0;
+
+
+    let color =
+        0x777777;
+
+
+    if (
+        data.team === "A"
+    ) {
+
+        color =
+            0x285caa;
+
+    }
+    else if (
+        data.team === "B"
+    ) {
+
+        color =
+            0xaa2828;
+
+    }
+
+
+    const bodyMaterial =
+        new THREE.MeshStandardMaterial({
+
+            color,
+
+            roughness:
+                .8
+
+        });
+
+
+    /*
+     * CORPO
+     */
+
+    const body =
+        new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+
+                .4,
+                .5,
+                1.3,
+                8
+
+            ),
+
+            bodyMaterial
+
+        );
+
+
+    body.position.y =
+        .65;
+
+
+    body.castShadow =
+        true;
+
+
+    body.receiveShadow =
+        true;
+
+
+    group.add(
+        body
+    );
+
+
+    /*
+     * CABEÇA
+     */
+
+    const head =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+
+                .38,
+                10,
+                10
+
+            ),
+
+            bodyMaterial.clone()
+
+        );
+
+
+    head.position.y =
+        1.65;
+
+
+    head.castShadow =
+        true;
+
+
+    group.add(
+        head
+    );
+
+
+    /*
+     * MARCADOR
+     */
+
+    const markerColor =
+        data.team === "A"
+            ? 0x4fa3ff
+            : 0xff4f4f;
+
+
+    const marker =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+
+                .08,
+                8,
+                8
+
+            ),
+
+            new THREE.MeshBasicMaterial({
+
+                color:
+                    markerColor
+
+            })
+
+        );
+
+
+    marker.position.y =
+        2.25;
+
+
+    group.add(
+        marker
+    );
+
+
+    return group;
+
+}
+
+
+/* ============================================================
+   COR PLAYER
+============================================================ */
+
+function updateOtherPlayerColor(
+    mesh,
+    team
+) {
+
+    const color =
+        team === "A"
+            ? 0x285caa
+            : team === "B"
+                ? 0xaa2828
+                : 0x777777;
+
+
+    mesh.traverse(
+        object => {
+
+            if (
+                object.isMesh &&
+                object.material &&
+                object.material.color
+            ) {
+
+                if (
+                    object.geometry &&
+                    object.geometry.type ===
+                    "SphereGeometry" &&
+                    object.geometry.parameters &&
+                    object.geometry.parameters.radius <= .2
+                ) {
+
+                    return;
+
+                }
+
+
+                object.material.color
+                .setHex(
+                    color
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* ============================================================
+   INTERPOLAÇÃO
+============================================================ */
+
+function updateOtherPlayers() {
+
+    for (
+        const id in onlinePlayers
+    ) {
+
+        const player =
+            onlinePlayers[id];
+
+
+        player.mesh.position.lerp(
+
+            player.target,
+
+            .25
+
+        );
+
+
+        player.mesh.rotation.y =
+            THREE.MathUtils.lerp(
+
+                player.mesh.rotation.y,
+
+                player.rotation,
+
+                .25
+
+            );
+
+    }
+
+}
+
+
+/* ============================================================
+   DANO
+============================================================ */
+
+function sendDamage(
+    targetId,
+    damage
+) {
+
+    if (
+        roundEnding ||
+        playerDead
+    )
+        return;
+
+
+    const target =
+        onlinePlayers[targetId];
+
+
+    if (
+        !target ||
+        !target.data
+    )
+        return;
+
+
+    if (
+        target.data.dead
+    )
+        return;
+
+
+    if (
+        target.data.team ===
+        myTeam
+    )
+        return;
+
+
+    const currentHealth =
+        Number(
+            target.data.health
+        );
+
+
+    if (
+        !Number.isFinite(
+            currentHealth
+        )
+    )
+        return;
+
+
+    const newHealth =
+        Math.max(
+
+            0,
+
+            currentHealth -
+            damage
+
+        );
+
+
+    const updates = {
+
+        health:
+            newHealth,
+
+        dead:
+            newHealth <= 0
+
+    };
+
+
+    update(
+
+        ref(
+
+            database,
+
+            `players/${targetId}`
+
+        ),
+
+        updates
+
+    )
+    .catch(
+        error => {
+
+            console.error(
+                "Erro ao causar dano:",
+                error
+            );
+
+        }
+    );
+
+}
+
+
+/* ============================================================
+   ESTADO LOCAL
+============================================================ */
+
+function processLocalPlayerState(
+    data
+) {
+
+    if (
+        !data
+    )
+        return;
+
+
+    /*
+     * Time.
+     */
+
+    if (
+        data.team &&
+        myTeam !== data.team
+    ) {
+
+        myTeam =
+            data.team;
+
+
+        updateTeamHUD();
+
+    }
+
+
+    /*
+     * Rodada sincronizada.
+     */
+
+    const serverRound =
+        Number(
+            data.round
+        );
+
+
+    if (
+        Number.isFinite(
+            serverRound
+        ) &&
+        serverRound >
+            roundNumber
+    ) {
+
+        roundNumber =
+            serverRound;
+
+
+        resetLocalPlayer(
+            data
+        );
+
+    }
+
+
+    /*
+     * Vida.
+     */
+
+    const newHealth =
+        Number(
+            data.health
+        );
+
+
+    if (
+        Number.isFinite(
+            newHealth
+        )
+    ) {
+
+        playerHealth =
+            newHealth;
+
+        updateHealth();
+
+    }
+
+
+    /*
+     * Morte.
+     */
+
+    if (
+        data.dead &&
+        !playerDead
+    ) {
+
+        playerDead =
+            true;
+
+
+        document
+        .getElementById(
+            "deadScreen"
+        )
+        .style.display =
+            "flex";
+
+
+        /*
+         * Agora sim desbloqueamos
+         * porque o jogador morreu.
+         */
+
+        if (
+            controls.isLocked
+        ) {
+
+            controls.unlock();
+
+        }
+
+    }
+
+}
+
+
+/* ============================================================
+   RESET LOCAL
+============================================================ */
+
+function resetLocalPlayer(
+    data
+) {
+
+    playerDead =
+        false;
+
+
+    roundEnding =
+        false;
+
+
+    playerMaxHealth =
+        CLASS_DATA[
+            selectedClass
+        ].health;
+
+
+    playerHealth =
+        playerMaxHealth;
+
+
+    attackCooldown =
+        0;
+
+
+    /*
+     * Remove projéteis.
+     */
+
+    clearProjectiles();
+
+
+    document
+    .getElementById(
+        "deadScreen"
+    )
+    .style.display =
+        "none";
+
+
+    document
+    .getElementById(
+        "pauseScreen"
+    )
+    .style.display =
+        "none";
+
+
+    updateHealth();
+
+
+    /*
+     * IMPORTANTE:
+     *
+     * A câmera agora recebe posição
+     * E rotação explicitamente.
+     *
+     * Isso evita a câmera nascer
+     * olhando para o teto/chão ou
+     * ficar com a rotação antiga.
+     */
+
+    setPlayerSpawn(
+        data.team,
+        true
+    );
+
+
+    document
+    .getElementById(
+        "roundText"
+    )
+    .textContent =
+        `RODADA ${roundNumber}`;
+
+
+    /*
+     * Não chamamos controls.lock()
+     * automaticamente aqui.
+     *
+     * Se já estiver locked, continua locked.
+     * Se estiver desbloqueado, o clique do
+     * usuário irá capturá-lo novamente.
+     */
+
+    if (
+        !controls.isLocked
+    ) {
+
+        showMessage(
+            "CLIQUE PARA ENTRAR NA RODADA"
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   LIMPAR PROJÉTEIS
+============================================================ */
+
+function clearProjectiles() {
+
+    for (
+        const id in projectiles
+    ) {
+
+        const projectile =
+            projectiles[id];
+
+
+        scene.remove(
+            projectile
+        );
+
+    }
+
+
+    for (
+        const id in projectiles
+    ) {
+
+        delete
+            projectiles[id];
+
+    }
+
+}
+
+
+/* ============================================================
+   FIM DA RODADA
+============================================================ */
+
+function checkRoundEnd(
+    players
+) {
+
+    /*
+     * Nunca verificar durante uma atualização
+     * de rodada.
+     */
+
+    if (
+        roundEnding ||
+        roundUpdateInProgress ||
+        roundCheckLock
+    )
+        return;
+
+
+    const ids =
+        Object.keys(
+            players
+        );
+
+
+    /*
+     * PvP só começa quando temos pelo menos
+     * dois jogadores.
+     */
+
+    if (
+        ids.length < 2
+    )
+        return;
+
+
+    let totalA =
+        0;
+
+    let totalB =
+        0;
+
+    let aliveA =
+        0;
+
+    let aliveB =
+        0;
+
+
+    for (
+        const id of ids
+    ) {
+
+        const player =
+            players[id];
+
+
+        /*
+         * Ignora registros incompletos.
+         */
+
+        if (
+            !player.team
+        )
+            continue;
+
+
+        if (
+            player.team === "A"
+        ) {
+
+            totalA++;
+
+
+            if (
+                !player.dead
+            )
+                aliveA++;
+
+        }
+
+
+        if (
+            player.team === "B"
+        ) {
+
+            totalB++;
+
+
+            if (
+                !player.dead
+            )
+                aliveB++;
+
+        }
+
+    }
+
+
+    /*
+     * Se ainda não existem jogadores nos dois
+     * lados, NÃO termina a partida.
+     */
+
+    if (
+        totalA === 0 ||
+        totalB === 0
+    )
+        return;
+
+
+    /*
+     * Somente considera fim quando um time
+     * inteiro está morto.
+     */
+
+    if (
+        aliveA === 0 &&
+        aliveB > 0
+    ) {
+
+        endRound(
+            "TIME VERMELHO VENCEU"
+        );
+
+        return;
+
+    }
+
+
+    if (
+        aliveB === 0 &&
+        aliveA > 0
+    ) {
+
+        endRound(
+            "TIME AZUL VENCEU"
+        );
+
+        return;
+
+    }
+
+}
+
+
+/* ============================================================
+   FIM DA RODADA
+============================================================ */
+
+function endRound(
+    text
+) {
+
+    if (
+        roundEnding
+    )
+        return;
+
+
+    roundEnding =
+        true;
+
+
+    showMessage(
+        text
+    );
+
+
+    /*
+     * NÃO desbloqueamos mais o mouse aqui.
+     *
+     * Esse era um dos principais problemas
+     * da câmera entre partidas.
+     *
+     * O jogador permanece em Pointer Lock
+     * durante a transição.
+     */
+
+    clearTimeout(
+        roundResetTimer
+    );
+
+
+    roundResetTimer =
+        setTimeout(
+            () => {
+
+                startNewRound();
+
+            },
+            3000
+        );
+
+}
+
+
+/* ============================================================
+   NOVA RODADA
+============================================================ */
+
+function startNewRound() {
+
+    if (
+        roundUpdateInProgress
+    )
+        return;
+
+
+    roundUpdateInProgress =
+        true;
+
+
+    roundNumber++;
+
+
+    playerDead =
+        false;
+
+
+    roundEnding =
+        true;
+
+
+    attackCooldown =
+        0;
+
+
+    playerMaxHealth =
+        CLASS_DATA[
+            selectedClass
+        ].health;
+
+
+    playerHealth =
+        playerMaxHealth;
+
+
+    clearProjectiles();
+
+
+    document
+    .getElementById(
+        "deadScreen"
+    )
+    .style.display =
+        "none";
+
+
+    updateHealth();
+
+
+    /*
+     * Mantém o time.
+     *
+     * Todos os jogadores recebem nova vida.
+     * O time NÃO é alterado.
+     */
+
+    const playersRef =
+        ref(
+            database,
+            "players"
+        );
+
+
+    onValue(
+
+        playersRef,
+
+        snapshot => {
+
+            const players =
+                snapshot.val() ||
+                {};
+
+
+            const updates = {};
+
+
+            for (
+                const id in players
+            ) {
+
+                const p =
+                    players[id];
+
+
+                const classData =
+                    CLASS_DATA[
+                        p.class ||
+                        "knight"
+                    ];
+
+
+                updates[
+                    `${id}/health`
+                ] =
+                    classData.health;
+
+
+                updates[
+                    `${id}/maxHealth`
+                ] =
+                    classData.health;
+
+
+                updates[
+                    `${id}/dead`
+                ] =
+                    false;
+
+
+                updates[
+                    `${id}/round`
+                ] =
+                    roundNumber;
+
+            }
+
+
+            update(
+
+                ref(
+                    database,
+                    "players"
+                ),
+
+                updates
+
+            )
+            .then(
+                () => {
+
+                    /*
+                     * Posição local.
+                     */
+
+                    playerMaxHealth =
+                        CLASS_DATA[
+                            selectedClass
+                        ].health;
+
+
+                    playerHealth =
+                        playerMaxHealth;
+
+
+                    playerDead =
+                        false;
+
+
+                    /*
+                     * Nova rodada começa
+                     * efetivamente agora.
+                     */
+
+                    roundEnding =
+                        false;
+
+
+                    roundUpdateInProgress =
+                        false;
+
+
+                    setPlayerSpawn(
+                        myTeam,
+                        true
+                    );
+
+
+                    document
+                    .getElementById(
+                        "roundText"
+                    )
+                    .textContent =
+                        `RODADA ${roundNumber}`;
+
+
+                    updateHealth();
+
+
+                    showMessage(
+                        `RODADA ${roundNumber}`
+                    );
+
+
+                    /*
+                     * Se o Pointer Lock ainda estiver
+                     * ativo, a câmera já está pronta.
+                     *
+                     * Se não estiver, não forçamos
+                     * lock via setTimeout.
+                     */
+
+                    if (
+                        !controls.isLocked
+                    ) {
+
+                        showMessage(
+                            `RODADA ${roundNumber} • CLIQUE PARA ENTRAR`
+                        );
+
+                    }
+
+                }
+            )
+            .catch(
+                error => {
+
+                    console.error(
+                        "Erro ao iniciar rodada:",
+                        error
+                    );
+
+
+                    roundUpdateInProgress =
+                        false;
+
+                    roundEnding =
+                        false;
+
+                }
+            );
+
+        },
+
+        {
+            onlyOnce:
+                true
+        }
+
+    );
+
+}
+
+
+/* ============================================================
+   PLACAR
+============================================================ */
+
+function updateScore(
+    players
+) {
+
+    let a =
+        0;
+
+    let b =
+        0;
+
+
+    for (
+        const id in players
+    ) {
+
+        if (
+            players[id].team ===
+            "A"
+        )
+            a++;
+
+
+        if (
+            players[id].team ===
+            "B"
+        )
+            b++;
+
+    }
+
+
+    teamAPlayers =
+        a;
+
+
+    teamBPlayers =
+        b;
+
+
+    document
+    .getElementById(
+        "teamA"
+    )
+    .textContent =
+        `AZUL ${a}`;
+
+
+    document
+    .getElementById(
+        "teamB"
+    )
+    .textContent =
+        `VERMELHO ${b}`;
+
+}
+
+
+/* ============================================================
+   LISTENER PRÓPRIO
+============================================================ */
+
+function listenToOwnPlayer() {
+
+    const ownRef =
+        ref(
+
+            database,
+
+            `players/${playerId}`
+
+        );
+
+
+    onValue(
+
+        ownRef,
+
+        snapshot => {
+
+            const data =
+                snapshot.val();
+
+
+            if (
+                data
+            ) {
+
+                processLocalPlayerState(
+                    data
+                );
+
+            }
+
+        }
+
+    );
+
+}
+
+
+listenToOwnPlayer();
+
+
+/* ============================================================
+   MENSAGEM
+============================================================ */
+
+let messageTimer;
+
+
+function showMessage(
+    text
+) {
+
+    const element =
+        document.getElementById(
+            "message"
+        );
+
+
+    element.textContent =
+        text;
+
+
+    element.style.opacity =
+        "1";
+
+
+    clearTimeout(
+        messageTimer
+    );
+
+
+    messageTimer =
+        setTimeout(
+            () => {
+
+                element.style.opacity =
+                    "0";
+
+            },
+            1800
+        );
+
+}
+
+
+/* ============================================================
+   DESCONEXÃO
+============================================================ */
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+
+        remove(
+
+            ref(
+
+                database,
+
+                `players/${playerId}`
+
+            )
+
+        );
+
+    }
+);
+
+
+/* ============================================================
+   LOOP
+============================================================ */
+
+const clock =
+    new THREE.Clock();
+
+
+function animate() {
+
+    requestAnimationFrame(
+        animate
+    );
+
+
+    const delta =
+        Math.min(
+
+            clock.getDelta(),
+
+            .05
+
+        );
+
+
+    if (
+        gameStarted
+    ) {
+
+        updatePlayer(
+            delta
+        );
+
+
+        updateProjectiles(
+            delta
+        );
+
+
+        updateOnlinePlayer(
+            delta
+        );
+
+
+        updateOtherPlayers();
+
+
+        attackCooldown =
+            Math.max(
+
+                0,
+
+                attackCooldown -
+                delta
+
+            );
+
+    }
+
+
+    renderer.render(
+
+        scene,
+
+        camera
+
+    );
+
+}
+
+
+animate();
+
+
+/* ============================================================
+   RESIZE
+============================================================ */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        camera.aspect =
+            innerWidth /
+            innerHeight;
+
+
+        camera.updateProjectionMatrix();
+
+
+        renderer.setSize(
+
+            innerWidth,
+
+            innerHeight
+
+        );
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>
